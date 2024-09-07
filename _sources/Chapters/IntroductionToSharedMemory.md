@@ -129,3 +129,177 @@ indicesOfKernelUtilized = min((int)indicesOfKernelUtilized, (int)d_inputDimensio
 double tempOutput;
 ```
 
+Each block is assigned the responsibility of calculating the output for each index. Depending on the position of the index and the number of threads in the block, not all the threads will be utilized for calculating the results of the job. For example, consider the case of calculating the output of index = 0. In this case, only one thread will be utilized since the dot-product is between sub-arrays of length, 1. Thus, we need to add a checkpoint which essentially checks if the thread that is executing it is assigned a responsibility. This is done in the following manner. 
+
+```C++
+// checking block-validity
+if(blockIdx.x<finalOutputLength)
+{
+    ...
+}
+```
+
+Once the check is complete, we assign the threads to calculate the element-wise product of the subarrays required to calculate the outputs of the current index. 
+
+```C++
+// checking block-validity
+if(blockIdx.x<finalOutputLength)
+{
+    // finding index assigned to this particular thread
+    int indexAssignedToThisThread = blockIdx.x - threadIdx.x;
+
+    // checking if the thread assigned to this 
+    if (indexAssignedToThisThread>=0 || indexAssignedToThisThread<finalOutputLength)
+    {
+        // producing the product
+        tempOutput = d_inputPointerA[indexAssignedToThisThread]*d_inputPointerB[threadIdx.x];
+
+        // saving value to the shared memory
+        sharedMem[threadIdx.x] = tempOutput;
+    }
+
+    // syncing the threads within the block
+    __syncthreads();
+
+    ...
+}
+```
+
+
+We now accumulate the element-wise products to obtain the dot-product of the sub-arrays. There is a parallel approach to accumulating values but for now, we assign the accumulation operation to the first thread in the thread-block. The result is then stored into the appropriate index. 
+
+```C++
+// checking block-validity
+if(blockIdx.x<finalOutputLength)
+{
+    ...
+
+    // assigning the first thread to take care of the addition
+    double accusum = 0;
+    if(threadIdx.x == 0)
+    {       
+        // Summing up the shared-memory
+        for(int i = 0; i<indicesOfKernelUtilized; ++i)
+        {
+            accusum = accusum + (double)sharedMem[i];
+        }
+
+        // copying the shared-memory into the value
+        d_outputPointer[blockIdx.x] = accusum;
+
+    }
+}
+```
+
+Putting it all together, the kernel function should look like the following. 
+```C++
+// kernel
+__global__ void conv(double *d_inputPointerA,
+                        double *d_inputPointerB,
+                        double *d_outputPointer,
+                        const mwSize *d_inputDimensionsA,
+                        const mwSize *d_inputDimensionsB)
+{
+    // shared memory
+    extern __shared__ double sharedMem[];
+
+    // miscellaneous
+    int finalOutputLength = (int)d_inputDimensionsA[0] + (int)d_inputDimensionsB[0] - 1;
+    int indicesOfKernelUtilized = blockIdx.x - d_inputDimensionsB[0]+1;
+    indicesOfKernelUtilized = min((int)indicesOfKernelUtilized, (int)d_inputDimensionsB[0]);
+    double tempOutput;
+
+    // checking block-validity
+    if(blockIdx.x<finalOutputLength)
+    {
+        // finding index assigned to this particular thread
+        int indexAssignedToThisThread = blockIdx.x - threadIdx.x;
+
+        // checking if the thread assigned to this 
+        if (indexAssignedToThisThread>=0 || indexAssignedToThisThread<finalOutputLength)
+        {
+            // producing the product
+            tempOutput = d_inputPointerA[indexAssignedToThisThread]*d_inputPointerB[threadIdx.x];
+
+            // saving value to the shared memory
+            sharedMem[threadIdx.x] = tempOutput;
+        }
+
+        // syncing the threads within the block
+        __syncthreads();
+
+        // assigning the first thread to take care of the addition
+        double accusum = 0;
+        if(threadIdx.x == 0)
+        {       
+            // Summing up the shared-memory
+            for(int i = 0; i<indicesOfKernelUtilized; ++i)
+            {
+                accusum = accusum + (double)sharedMem[i];
+            }
+
+            // copying the shared-memory into the value
+            d_outputPointer[blockIdx.x] = accusum;
+            // d_outputPointer[blockIdx.x] = blockIdx.x;
+
+        }
+    }
+}
+```
+
+
+For the mex gateway-function, we start by first testing the validity of the inputs by testing the number of arguments, data type and dimensionality. 
+```C++
+// mex-function
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    // check number of inputs
+    if(nrhs!=2)
+    {
+        mexErrMsgTxt("The Number of Inputs are Wrong \n");
+    }
+    
+    // check number of outputs
+    if(nlhs!=1)
+    {
+        mexErrMsgTxt("Number of expected outputs are wrong \n");
+    }
+    
+    // check data-types
+    if(!mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]))
+    {
+        mexErrMsgTxt("First argument has the wrong data-type \n");
+    }
+    if(!mxIsDouble(prhs[1]) || mxIsComplex(prhs[1]) )
+    {
+        mexErrMsgTxt("Second argument has the wrong data type \n");
+    }
+
+    ...
+}
+```
+
+Once the argument testing has been passed, we receive the inputs into objects of the class, CustomGPUObject. The input arguments are then sent to the device global-memory. 
+```C++
+// Fetching the data
+CustomGPUObject inputArray(prhs[0]);
+CustomGPUObject kernelArray(prhs[1]);
+
+// Sending the Data to the GPU
+inputArray.copyFromHostToDevice();
+kernelArray.copyFromHostToDevice();
+```
+
+We then setup space for the output. To do this, we first infer the length of the output of the convolution operation. This is followed by creating a matlab matrix of the same dimensions using the function *mxCreateNumericMatrix*. We use another object of the class, *CustomGPUObject* to encapsulate the output matrix. Even though this data doesn't need to be sent to the device global memory, we use the class method, *copyFromHostToDevice* so that the dimensions are available at the global memory in addition to allocating space in the global memory. 
+```C++
+// setup output
+size_t outputLength = inputArray.inputDimensions[0] + kernelArray.inputDimensions[0] - 1;
+plhs[0] = mxCreateNumericMatrix(outputLength,1, mxDOUBLE_CLASS, mxREAL);
+CustomGPUObject outputArray(plhs[0]); 
+outputArray.copyFromHostToDevice(); 
+```
+
+To launch the kernels, we must first prepare the launch-configuration parameters. In our case, since we're using dynamic shared-memory too, in addition to the *gridConfiguration* and *blockConfiguration*, we'll need to provide shared-memory size too. Our kernel is written in such a way that each block is responsible for the output at each index. Thus, this means that the number of threads assigned to a block must be greater than or equal to the number of elements in the kernel. And due to the same reason of each block being assigned the output at each index, the number of blocks will correspond to the length of the output of the convolution operation. 
+
+Once the *gridConfiguration* and *blockConfiguration* has been setup, we perform the kernel launch in the following manner with the third launch-configuration parameter being the size of the shared-memory. 
+
