@@ -384,6 +384,10 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#convolution-theory">Convolution Theory</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory">Shared Memory</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory-allocation-static">Shared Memory Allocation: Static</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -421,6 +425,49 @@ document.write(`
 <li><p><strong>Neural Networks</strong>: In convolutional neural networks (CNNs), convolution operations are used to automatically learn and extract features from raw data, like edges, textures, or patterns in images, which are crucial for tasks like image classification or object detection.</p></li>
 </ul>
 <p>In essence, convolution is a versatile tool for transforming data in ways that reveal or emphasize important characteristics, making it invaluable in both analysis and practical applications.</p>
+</section>
+<section id="shared-memory">
+<h3>Shared Memory<a class="headerlink" href="#shared-memory" title="Link to this heading">#</a></h3>
+<p>Shared Memory is another kind of memory that is available on most NVIDIA-GPUs. Unlike Local Memory and Global memory which reside on-device and far from the SMs, shared memory resides on-chip. Due to the physical proximity in addition to the high-bandwidth channels, the latency for read-and-writes are extremely low and magnitudes lower than that of Global and Local Memory. It is designed to support efficient, high-bandwidth sharing of data among threads in a block.</p>
+<p>Regarding access, the contents of the shared memory are available to all threads within a block. This means that data-structures allocated to shared memory is available to all threads within a block. And each block gets their copy of the structure that was assigned to shared memory. For example, if one were to allocate a double array of length 32, all the blocks will have their own copy of this array. This kind of read-and-write access allows the threads within a block to collaborate to carry out different tasks.</p>
+<p>Shared memory can be assigned in two different ways: static and dynamic. Static allocation allows for higher-dimensional arrays with the trade-off being that the dimensions should be known before-hand. Dynamic allocation, on the other hand, although only allowing for linear arrays, it allows for run-time allocation of shared-memory based on some variable value. To have dynamic high-dimensional arrays, one will have to bring in custom classes that explicitly take care of the expected functionality. The following sections show the two different skeletal ways of allocating shared-memory: static and dynamic.</p>
+<section id="shared-memory-allocation-static">
+<h4>Shared Memory Allocation: Static<a class="headerlink" href="#shared-memory-allocation-static" title="Link to this heading">#</a></h4>
+<p>In static allocation, we decide on the size of the available shared memory at compile-time. The standard method of assigning this is through pre-processor directives. Static allocation allows the shared-memory to have higher dimensions. The following shows the creation of a 2-Dimensional shared matrix with the help of preprocessor directives. Note that in static allocation of shared-memory, one does not need to pass the size of the shared-memory as the third kernel-launch parameter. It will be automatically inferred through the preprocessor directives and data-type.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Headerfiles</span>
+<span class="cp">#include ``mex.h&#39;&#39;</span>
+
+
+<span class="c1">// shared-memory related parameters</span>
+<span class="cp">#define SHAREDMEMX 7</span>
+<span class="cp">#define SHAREDMEMY 7</span>
+
+<span class="c1">// kernel</span>
+<span class="n">__global__</span><span class="w"> </span><span class="nf">mockkernel</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="n">__shared__</span><span class="w"> </span><span class="n">sharedMatrix</span><span class="p">[</span><span class="n">SHAREDMEMX</span><span class="p">][</span><span class="n">SHAREDMEMY</span><span class="p">];</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="p">}</span>
+
+<span class="c1">// gate-way function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(...)</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// Initialize thread parameters</span>
+<span class="w">	</span><span class="n">dim3</span><span class="w"> </span><span class="n">blockspergrid</span><span class="p">;</span>
+<span class="w">	</span><span class="n">dim3</span><span class="w"> </span><span class="n">threadsperblock</span><span class="p">;</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// shared memory related parameters</span>
+<span class="w">	</span><span class="kt">int</span><span class="w"> </span><span class="n">sharedmemoryLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">128</span><span class="p">;</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// calling the kernel</span>
+<span class="w">	</span><span class="n">kernelfunction</span><span class="o">&lt;&lt;&lt;</span><span class="n">blockspergrid</span><span class="p">,</span><span class="w"> </span><span class="n">threadsperblock</span><span class="o">&gt;&gt;&gt;</span><span class="p">();</span>
+<span class="w">	</span>
+<span class="w">	</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 </section>
@@ -483,6 +530,10 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#convolution-theory">Convolution Theory</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory">Shared Memory</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory-allocation-static">Shared Memory Allocation: Static</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
