@@ -15,4 +15,17 @@ The following are the key-aspects of a stencil operation
     - **Numerical Methods**: In solving partial differential equations (PDEs), stencil operations are used to approximate derivatives and other operations.
     - **Image Processing**: Stencils are applied for tasks like edge detection, blurring, and sharpening, where each pixel's new value depends on the values of its neighboring pixels.
     - **Scientific Computing**: Stencil operations are common in simulations, such as fluid dynamics, where they model the interaction between points in a grid.
+Stencil operations are highly parallelizable, making them well-suited for implementation on GPUs using CUDA.
 
+### Constant Memory (complete but  not polished)
+*Constant Memory* is another class of memory that is available in most NVIDIA GPUs. The constant memory is at the same distance from the SM as that of the Global Memory. Though constant memory is not at the same proximity as that of shared-memory, it is aggressively cached. This means that using constant memory to store data that will remain constant throughout the process in addition to being regularly used will produce gains in speed. Thus this kind of data that is stored in the constant memory is efficiently and effectively cached. This kind of aggressive caching allows for extreme streamlining and large gains in time due to the high hit rates in the cache. 
+
+Regarding access-privilege, the data in Constant Memory is only allowed to be set from the host-side and never from the device-side. That is, host side write access while device-side has read access. Due to these technical designs and characteristics, Constant Memory must be used to store those values that are 
+- Regularly Used
+- No edits
+- Not too large
+
+Thus, for tasks such as convolution where we use the same kernel throughout the data, using constant-memory to store the kernel-weights is a good idea. Even though most filters will fit just fine into constant-memory of constant sizes, it is important to remember that the improvement in performance stems from the high-hit rate of increasing the probability of finding them in the cache associated with the constant-memory. 
+
+#### Using Constant-Memory (complete but  not polished)
+Unlike Shared Memory, *Constant Memory* doesn't give us the option to be dynamically allocated. Thus, we allocate constant memory during compile time, through preprocessor directives. Constant memory is declared in the same way we declare a global variable, but with the addition that we use the identifier, $\_\_constant\_\_$. Once declared, we populate constant-memory using the function, *cudaMemcpyToSymbol()*. Following is a skeletal code that demonstrates using constant memory. 

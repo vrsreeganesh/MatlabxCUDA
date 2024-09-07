@@ -57,6 +57,8 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/IntroductionToConstantMemory';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -381,6 +383,10 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stencil-operation-complete-but-not-polished">Stencil Operation (complete but not polished)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant-memory-complete-but-not-polished">Constant Memory (complete but  not polished)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#using-constant-memory-complete-but-not-polished">Using Constant-Memory (complete but  not polished)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -413,10 +419,26 @@ document.write(`
 <ul>
 <li><p><strong>Numerical Methods</strong>: In solving partial differential equations (PDEs), stencil operations are used to approximate derivatives and other operations.</p></li>
 <li><p><strong>Image Processing</strong>: Stencils are applied for tasks like edge detection, blurring, and sharpening, where each pixel’s new value depends on the values of its neighboring pixels.</p></li>
-<li><p><strong>Scientific Computing</strong>: Stencil operations are common in simulations, such as fluid dynamics, where they model the interaction between points in a grid.</p></li>
+<li><p><strong>Scientific Computing</strong>: Stencil operations are common in simulations, such as fluid dynamics, where they model the interaction between points in a grid.
+Stencil operations are highly parallelizable, making them well-suited for implementation on GPUs using CUDA.</p></li>
 </ul>
 </li>
 </ul>
+</section>
+<section id="constant-memory-complete-but-not-polished">
+<h3>Constant Memory (complete but  not polished)<a class="headerlink" href="#constant-memory-complete-but-not-polished" title="Link to this heading">#</a></h3>
+<p><em>Constant Memory</em> is another class of memory that is available in most NVIDIA GPUs. The constant memory is at the same distance from the SM as that of the Global Memory. Though constant memory is not at the same proximity as that of shared-memory, it is aggressively cached. This means that using constant memory to store data that will remain constant throughout the process in addition to being regularly used will produce gains in speed. Thus this kind of data that is stored in the constant memory is efficiently and effectively cached. This kind of aggressive caching allows for extreme streamlining and large gains in time due to the high hit rates in the cache.</p>
+<p>Regarding access-privilege, the data in Constant Memory is only allowed to be set from the host-side and never from the device-side. That is, host side write access while device-side has read access. Due to these technical designs and characteristics, Constant Memory must be used to store those values that are</p>
+<ul class="simple">
+<li><p>Regularly Used</p></li>
+<li><p>No edits</p></li>
+<li><p>Not too large</p></li>
+</ul>
+<p>Thus, for tasks such as convolution where we use the same kernel throughout the data, using constant-memory to store the kernel-weights is a good idea. Even though most filters will fit just fine into constant-memory of constant sizes, it is important to remember that the improvement in performance stems from the high-hit rate of increasing the probability of finding them in the cache associated with the constant-memory.</p>
+<section id="using-constant-memory-complete-but-not-polished">
+<h4>Using Constant-Memory (complete but  not polished)<a class="headerlink" href="#using-constant-memory-complete-but-not-polished" title="Link to this heading">#</a></h4>
+<p>Unlike Shared Memory, <em>Constant Memory</em> doesn’t give us the option to be dynamically allocated. Thus, we allocate constant memory during compile time, through preprocessor directives. Constant memory is declared in the same way we declare a global variable, but with the addition that we use the identifier, <span class="math notranslate nohighlight">\(\_\_constant\_\_\)</span>. Once declared, we populate constant-memory using the function, <em>cudaMemcpyToSymbol()</em>. Following is a skeletal code that demonstrates using constant memory.</p>
+</section>
 </section>
 </section>
 </section>
@@ -479,6 +501,10 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stencil-operation-complete-but-not-polished">Stencil Operation (complete but not polished)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant-memory-complete-but-not-polished">Constant Memory (complete but  not polished)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#using-constant-memory-complete-but-not-polished">Using Constant-Memory (complete but  not polished)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
