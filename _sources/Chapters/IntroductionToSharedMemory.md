@@ -105,3 +105,27 @@ void mexFunction(...)
 ```
 
 
+## MexCUDA Code
+The approach we use for this particular problem is to have all the threads in a block produce the output for one particular index. This means that if the output signal is estimated to be of length 128, we allocate 128 total number of blocks. And the number of threads in a block corresponds to the length of the kernel signal, which is usually the signal which is smaller. 
+
+The amount of shared-memory required for this particular operation depends on the arguments. This means that it is ideal to use dynamically allocated shared-memory to perform this operation. And since the inputs are also linear, implementing the operations using linear shared-memory is fairly straightforward. Thus, in the kernel, we start by declaring the pointer to the shared-memory, in the following manner.
+
+```C++
+// shared memory
+extern __shared__ double sharedMem[];
+```
+
+Before we go ahead with the computation, we need to calculate some metrics that we'll need. The first is the final-length of the output. We use the standard equation of convolution to obtain this particular length, which is given by 
+$$
+length(Output) = length(inputA) + length(inputB) - 1
+$$
+
+We then calculate the indices of the kernel that is used. So during convolution, depending on the  index for which we're calculating the values for, we need to decide the indices that are being used. We also declare a variable that stores the value of the product of two values in the array. These steps are done in the following manner. 
+```C++
+// miscellaneous
+int finalOutputLength = (int)d_inputDimensionsA[0] + (int)d_inputDimensionsB[0] - 1;
+int indicesOfKernelUtilized = blockIdx.x - d_inputDimensionsB[0]+1;
+indicesOfKernelUtilized = min((int)indicesOfKernelUtilized, (int)d_inputDimensionsB[0]);
+double tempOutput;
+```
+

@@ -391,6 +391,7 @@ document.write(`
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-code">MexCUDA Code</a></li>
 </ul>
             </nav>
         </div>
@@ -502,6 +503,27 @@ document.write(`
 </section>
 </section>
 </section>
+<section id="mexcuda-code">
+<h2>MexCUDA Code<a class="headerlink" href="#mexcuda-code" title="Link to this heading">#</a></h2>
+<p>The approach we use for this particular problem is to have all the threads in a block produce the output for one particular index. This means that if the output signal is estimated to be of length 128, we allocate 128 total number of blocks. And the number of threads in a block corresponds to the length of the kernel signal, which is usually the signal which is smaller.</p>
+<p>The amount of shared-memory required for this particular operation depends on the arguments. This means that it is ideal to use dynamically allocated shared-memory to perform this operation. And since the inputs are also linear, implementing the operations using linear shared-memory is fairly straightforward. Thus, in the kernel, we start by declaring the pointer to the shared-memory, in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// shared memory</span>
+<span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+</pre></div>
+</div>
+<p>Before we go ahead with the computation, we need to calculate some metrics that we’ll need. The first is the final-length of the output. We use the standard equation of convolution to obtain this particular length, which is given by
+$<span class="math notranslate nohighlight">\(
+length(Output) = length(inputA) + length(inputB) - 1
+\)</span>$</p>
+<p>We then calculate the indices of the kernel that is used. So during convolution, depending on the  index for which we’re calculating the values for, we need to decide the indices that are being used. We also declare a variable that stores the value of the product of two values in the array. These steps are done in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// miscellaneous</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">finalOutputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">indicesOfKernelUtilized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+<span class="n">indicesOfKernelUtilized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">min</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">indicesOfKernelUtilized</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">tempOutput</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -569,6 +591,7 @@ document.write(`
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-code">MexCUDA Code</a></li>
 </ul>
   </nav></div>
 
