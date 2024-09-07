@@ -389,6 +389,12 @@ document.write(`
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-code-complete-but-not-polished">MexCUDA Code(complete but not polished)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-complete-but-not-polished">Kernel (complete but not polished)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway function</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code-complete-but-not-polished">Matlab Code (complete but not polished)</a></li>
 </ul>
             </nav>
         </div>
@@ -438,8 +444,272 @@ Stencil operations are highly parallelizable, making them well-suited for implem
 <section id="using-constant-memory-complete-but-not-polished">
 <h4>Using Constant-Memory (complete but  not polished)<a class="headerlink" href="#using-constant-memory-complete-but-not-polished" title="Link to this heading">#</a></h4>
 <p>Unlike Shared Memory, <em>Constant Memory</em> doesn’t give us the option to be dynamically allocated. Thus, we allocate constant memory during compile time, through preprocessor directives. Constant memory is declared in the same way we declare a global variable, but with the addition that we use the identifier, <span class="math notranslate nohighlight">\(\_\_constant\_\_\)</span>. Once declared, we populate constant-memory using the function, <em>cudaMemcpyToSymbol()</em>. Following is a skeletal code that demonstrates using constant memory.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="p">...</span>
+<span class="c1">// How to Declare Constant Memory </span>
+<span class="cp">#define CONSTANT_MEMORY_LENGTH 21</span>
+<span class="n">__constant__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">constantFilterKernel</span><span class="p">[</span><span class="n">CONSTANT_MEMORY_LENGTH</span><span class="p">];</span>
+
+<span class="c1">// gate-way function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// sending data from Host to Constant Memory</span>
+<span class="w">    </span><span class="n">cudaMemcpyToSymbol</span><span class="p">(</span><span class="n">constantFilterKernel</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">hostFilterKernel</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">numElementsKernel</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="p">}</span>
+
+<span class="p">...</span>
+</pre></div>
+</div>
 </section>
 </section>
+</section>
+<section id="mexcuda-code-complete-but-not-polished">
+<h2>MexCUDA Code(complete but not polished)<a class="headerlink" href="#mexcuda-code-complete-but-not-polished" title="Link to this heading">#</a></h2>
+<p>We start by declaring constant memory. The following lines of code shows the use of preprocessor directives to choose the size of the constant-memory.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// setting up constant memory</span>
+<span class="cp">#define CONSTANT_MEMORY_LENGTH 21</span>
+<span class="n">__constant__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">constantFilterKernel</span><span class="p">[</span><span class="n">CONSTANT_MEMORY_LENGTH</span><span class="p">];</span>
+</pre></div>
+</div>
+<section id="kernel-complete-but-not-polished">
+<h3>Kernel (complete but not polished)<a class="headerlink" href="#kernel-complete-but-not-polished" title="Link to this heading">#</a></h3>
+<p>In the kernel, we start by obtaining the mapping from the thread-address to the data-index that the particular thread is responsible for. For this particular example, we’re mapping the thread-address to the data-index that the thread will be responsible for. The mapping to the thread-address to the output-index is done in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// mapping from thread-address to output-address</span>
+<span class="kt">size_t</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Note that the stencil operation is different from that of convolution. In the sense that the stencil operation is done in such a way that the stencil is always inside the input array. This means that the output index will always be less than the length of the input array since the output will be of the same length. Thus, the gating is as follows</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// ensuring validity</span>
+<span class="k">if</span><span class="p">(</span><span class="n">tid</span><span class="o">&lt;</span><span class="n">inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Before we perform the operation, we setup the variables that will be used for the operation in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// ensuring validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tid</span><span class="o">&lt;</span><span class="n">inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// performing the kernel operation</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">bigIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">kernelIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="p">...</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Unlike convolution, the output is stored to the position of the middle-index in the output array. So keeping this in mind, we calculate the dot product of the two sub-arrays in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// ensuring validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tid</span><span class="o">&lt;</span><span class="n">inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="p">...</span>
+
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputDimensionsB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;=</span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputDimensionsB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// obtaining the absolute indices into each datastructures</span>
+<span class="w">            </span><span class="n">bigIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"> </span>
+<span class="w">            </span><span class="n">kernelIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputDimensionsB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">            </span><span class="c1">// checking for boundary conditions</span>
+<span class="w">            </span><span class="k">if</span><span class="p">(</span><span class="n">bigIndex</span><span class="o">&gt;=</span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">bigIndex</span><span class="o">&lt;</span><span class="w"> </span><span class="n">inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">dA</span><span class="p">[</span><span class="n">bigIndex</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">constantFilterKernel</span><span class="p">[</span><span class="n">kernelIndex</span><span class="p">];</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="p">...</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Once the results have been computed, we store it to the output in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// ensuring validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tid</span><span class="o">&lt;</span><span class="n">inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="p">...</span>
+
+<span class="w">        </span><span class="c1">// adding the value to the final result</span>
+<span class="w">        </span><span class="n">dC</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">accusum</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Putting it together, we get the following</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// global kernel</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">Stencil_ConstantMemory</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dA</span><span class="p">,</span>
+<span class="w">                                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">dC</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                            </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">inputDimensionsA</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                            </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">inputDimensionsB</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// addresses</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// ensuring validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tid</span><span class="o">&lt;</span><span class="n">inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// performing the kernel operation</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">bigIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">kernelIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="o">*</span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputDimensionsB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;=</span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputDimensionsB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// obtaining the absolute indices into each datastructures</span>
+<span class="w">            </span><span class="n">bigIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"> </span>
+<span class="w">            </span><span class="n">kernelIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputDimensionsB</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span>
+
+<span class="w">            </span><span class="c1">// checking for boundary conditions</span>
+<span class="w">            </span><span class="k">if</span><span class="p">(</span><span class="n">bigIndex</span><span class="o">&gt;=</span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">bigIndex</span><span class="o">&lt;</span><span class="w"> </span><span class="n">inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">dA</span><span class="p">[</span><span class="n">bigIndex</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">constantFilterKernel</span><span class="p">[</span><span class="n">kernelIndex</span><span class="p">];</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// adding the value to the final result</span>
+<span class="w">        </span><span class="n">dC</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">accusum</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="gateway-function">
+<h3>Gateway function<a class="headerlink" href="#gateway-function" title="Link to this heading">#</a></h3>
+<p>In the gateway function, we first check the number of inputs provided, the number of outputs expected, the data-type and the dimensionality in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// checking number of inputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrhs</span><span class="o">!=</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Inputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// checking number of outputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Outputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// checking input data types</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;One of the Inputs are of the wrong data-type </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span><span class="w">    </span>
+</pre></div>
+</div>
+<p>Once the checking is complete, we fetch the inputs, store it into the objects of the class, <em>CustomGPUObject</em> and send it to the device global memory in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+
+<span class="w">    </span><span class="c1">// Fetching inputs and sending to device global memory</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="n">inputA</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="n">inputB</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// Sending inputs to device global memory</span>
+<span class="w">    </span><span class="n">inputA</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">inputB</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Next, we populate the contents of the shared-memory with the stencil weights. This step is done in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// sending input filter to constant memory</span>
+<span class="n">cudaMemcpyToSymbol</span><span class="p">(</span><span class="n">constantFilterKernel</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">inputB</span><span class="p">.</span><span class="n">inputPointer_real</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">inputB</span><span class="p">.</span><span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>Next, we create a matlab matrix to store the output. This particular object is then encapsulated using an object of the class, <em>CustomGPUObject</em>. The contents of this class is then made available in the global device memory using the class method, <em>copyFromHostToDevice</em>. This is done in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+
+<span class="w">    </span><span class="c1">// setting  up output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericMatrix</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="n">inputA</span><span class="p">.</span><span class="n">numElements</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="n">outputC</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputC</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span><span class="w">   </span>
+</pre></div>
+</div>
+<p>Once the constant memory has been populated and the rest of the inputs are available in the global memory, we perform the kernel launch in the following manner. First, we seup the launch configuration parameters: block-configuration and grid-configuration. That is followed by kernel launch in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// prepping to call function </span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="n">block</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="n">grid</span><span class="p">(</span><span class="n">inputA</span><span class="p">.</span><span class="n">numElements</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// calling function</span>
+<span class="w">    </span><span class="n">Stencil_ConstantMemory</span><span class="o">&lt;&lt;&lt;</span><span class="n">grid</span><span class="p">,</span>
+<span class="w">                                </span><span class="n">block</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputA</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                        </span><span class="n">outputC</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                        </span><span class="n">inputA</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                        </span><span class="n">inputB</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Once the outputs are computed by the kernel and made available in the device global memory, we copy the results back using the class method, <em>copyFromDeviceToHost</em>. This is followed by the usual commands to shut down the GPU.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+
+<span class="w">    </span><span class="c1">// retrieving data from device to host</span>
+<span class="w">    </span><span class="n">outputC</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// shutting down</span>
+<span class="w">    </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="matlab-code-complete-but-not-polished">
+<h2>Matlab Code (complete but not polished)<a class="headerlink" href="#matlab-code-complete-but-not-polished" title="Link to this heading">#</a></h2>
+<p>In the matlab section, we first start with compiling the cuda code in the following manner.</p>
+<div class="highlight-MATLAB notranslate"><div class="highlight"><pre><span></span><span class="c">%% Basic Setup</span>
+<span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span><span class="w"> </span><span class="n">close</span><span class="w"> </span><span class="s">all</span><span class="p">;</span>
+
+<span class="c">%% Compiling mex-cuda</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">StencilConstantMemory_CUDA.cu</span>
+</pre></div>
+</div>
+<p>We then prepare simple inputs for this particular example in the following manner.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Preparing arguments</span>
+<span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">);</span>
+<span class="n">kernelArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Once the cuda code has been compiled (doesn’t need to be done each time) and the inputs have been prepared, we call the function and get the results in the following manner. We then plot the results.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Calling function</span>
+<span class="n">outputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">StencilConstantMemory_CUDA</span><span class="p">(</span><span class="n">inputArray</span><span class="p">,</span><span class="w"> </span><span class="n">kernelArray</span><span class="p">);</span>
+
+<span class="c">%% Plotting </span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">inputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;inputArray&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">outputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;outputArray&quot;</span><span class="p">);</span><span class="w">    </span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -507,6 +777,12 @@ Stencil operations are highly parallelizable, making them well-suited for implem
 </li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-code-complete-but-not-polished">MexCUDA Code(complete but not polished)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-complete-but-not-polished">Kernel (complete but not polished)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway function</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code-complete-but-not-polished">Matlab Code (complete but not polished)</a></li>
 </ul>
   </nav></div>
 
