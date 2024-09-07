@@ -72,6 +72,36 @@ void mexFunction(...)
 }
 ```
 
+#### Shared Memory Allocation: Dynamic
+In dynamic allocation, we decide on the size of the shared-memory array during run-time. While this allows for flexible decisions regarding size of the object in shared memory, this comes at a trade-off that the array stored in shared memory can only be linear. 
 
+When dynamically allocating shared memory, we just produce the pointer in the kernel. And then we pass the size of the shared memory array through the global-kernel call as the third kernel launch argument. The following shows a skeletal example of how to dynamically allocate a shared array. 
+
+```C++
+// Header files
+#include "mex.h"
+
+// kernel
+__global__ kernelfunction()
+{
+	__constant__ double sharedMemArray[];
+	...
+}
+
+// gate-way function
+void mexFunction(...)
+{
+	...
+	// Initialize thread parameters
+	dim3 blockspergrid;
+	dim3 threadsperblock;
+	
+	// shared memory related parameters
+	int sharedmemoryLength = 128;
+	
+	// calling the kernel
+	kernelfunction<<<blockspergrid, threadsperblock, sharedmemorylength*sizeof(double)>>>();
+}
+```
 
 

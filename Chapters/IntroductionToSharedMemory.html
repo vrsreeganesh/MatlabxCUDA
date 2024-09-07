@@ -382,6 +382,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#convolution-theory">Convolution Theory</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory">Shared Memory</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory-allocation-static">Shared Memory Allocation: Static</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory-allocation-dynamic">Shared Memory Allocation: Dynamic</a></li>
 </ul>
 </li>
 </ul>
@@ -464,6 +465,37 @@ document.write(`
 </pre></div>
 </div>
 </section>
+<section id="shared-memory-allocation-dynamic">
+<h4>Shared Memory Allocation: Dynamic<a class="headerlink" href="#shared-memory-allocation-dynamic" title="Link to this heading">#</a></h4>
+<p>In dynamic allocation, we decide on the size of the shared-memory array during run-time. While this allows for flexible decisions regarding size of the object in shared memory, this comes at a trade-off that the array stored in shared memory can only be linear.</p>
+<p>When dynamically allocating shared memory, we just produce the pointer in the kernel. And then we pass the size of the shared memory array through the global-kernel call as the third kernel launch argument. The following shows a skeletal example of how to dynamically allocate a shared array.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Header files</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mex.h&quot;</span>
+
+<span class="c1">// kernel</span>
+<span class="n">__global__</span><span class="w"> </span><span class="nf">kernelfunction</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="n">__constant__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMemArray</span><span class="p">[];</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="p">}</span>
+
+<span class="c1">// gate-way function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(...)</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// Initialize thread parameters</span>
+<span class="w">	</span><span class="n">dim3</span><span class="w"> </span><span class="n">blockspergrid</span><span class="p">;</span>
+<span class="w">	</span><span class="n">dim3</span><span class="w"> </span><span class="n">threadsperblock</span><span class="p">;</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// shared memory related parameters</span>
+<span class="w">	</span><span class="kt">int</span><span class="w"> </span><span class="n">sharedmemoryLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">128</span><span class="p">;</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// calling the kernel</span>
+<span class="w">	</span><span class="n">kernelfunction</span><span class="o">&lt;&lt;&lt;</span><span class="n">blockspergrid</span><span class="p">,</span><span class="w"> </span><span class="n">threadsperblock</span><span class="p">,</span><span class="w"> </span><span class="n">sharedmemorylength</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="o">&gt;&gt;&gt;</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 </section>
@@ -528,6 +560,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#convolution-theory">Convolution Theory</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory">Shared Memory</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory-allocation-static">Shared Memory Allocation: Static</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory-allocation-dynamic">Shared Memory Allocation: Dynamic</a></li>
 </ul>
 </li>
 </ul>
