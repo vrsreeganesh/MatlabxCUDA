@@ -57,6 +57,8 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/IntroductionToSharedMemory';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -407,9 +409,10 @@ document.write(`
 <h3>Convolution Theory<a class="headerlink" href="#convolution-theory" title="Link to this heading">#</a></h3>
 <!--% What is convolution??   -->
 <p>Convolution is a mathematical operation on two functions that produces a third function. It is defined as the integral of the product of the two functions after one is reflected about the y-axis and shifted. The integral is evaluated for all values of shift, producing the convolution function.</p>
-<div class="highlight-math notranslate"><div class="highlight"><pre><span></span>(f * g)(t) &amp;= \int_{-\infty}^{\infty} f(\tau) g (t - \tau) d\tau
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[
+(f * g)(t) &amp;= \int_{-\infty}^{\infty} f(\tau) g (t - \tau) d\tau
+\]</div>
 </section>
 </section>
 </section>
