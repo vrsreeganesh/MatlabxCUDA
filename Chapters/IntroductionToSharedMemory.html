@@ -696,11 +696,10 @@ document.write(`
 <p>The kernel launch in the above case is blocking, which means that the lines after the kernel launch will be executed only after the call has been completed. So we can copy the results back without waiting. Since we’re using the class to encapsulate everything, we can fetch the results back from the device global memory to host memory using the class method, <em>copyFromDeviceToHost</em> in the following manner.</p>
 <div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Fetching Data from GPU to Host</span>
 <span class="n">outputArray</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
-
-<span class="o">%</span><span class="w"> </span><span class="n">shutting</span><span class="w"> </span><span class="n">down</span><span class="w"> </span><span class="o">----------------------------------------------------------------</span>
-<span class="n">This</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">followed</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">usual</span><span class="w"> </span><span class="n">lines</span><span class="w"> </span><span class="n">when</span><span class="w"> </span><span class="n">finishing</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">use</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">gpu</span><span class="w"> </span><span class="n">devices</span><span class="p">.</span><span class="w"> </span>
-<span class="err">\</span><span class="n">begin</span><span class="p">{</span><span class="n">lstlisting</span><span class="p">}</span>
-<span class="c1">// Shutting down</span>
+</pre></div>
+</div>
+<p>This is followed by the usual lines when finishing the use of gpu devices.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Shutting down</span>
 <span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
 <span class="n">cudaDeviceReset</span><span class="p">();</span>
 </pre></div>

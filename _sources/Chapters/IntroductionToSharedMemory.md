@@ -319,10 +319,11 @@ The kernel launch in the above case is blocking, which means that the lines afte
 ```C++
 // Fetching Data from GPU to Host
 outputArray.copyFromDeviceToHost();
+```
 
 % shutting down ----------------------------------------------------------------
 This is followed by the usual lines when finishing the use of gpu devices. 
-\begin{lstlisting}
+```C++
 // Shutting down
 cudaDeviceSynchronize();
 cudaDeviceReset();
