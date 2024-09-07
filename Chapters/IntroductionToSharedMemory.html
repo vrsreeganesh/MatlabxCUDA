@@ -392,6 +392,7 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-code">MexCUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
 </ul>
             </nav>
         </div>
@@ -511,10 +512,7 @@ document.write(`
 <span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
 </pre></div>
 </div>
-<p>Before we go ahead with the computation, we need to calculate some metrics that we’ll need. The first is the final-length of the output. We use the standard equation of convolution to obtain this particular length, which is given by
-$<span class="math notranslate nohighlight">\(
-length(Output) = length(inputA) + length(inputB) - 1
-\)</span>$</p>
+<p>Before we go ahead with the computation, we need to calculate some metrics that we’ll need. The first is the final-length of the output. We use the standard equation of convolution to obtain this particular length, which is given by <span class="math notranslate nohighlight">\(length(Output) = length(inputA) + length(inputB) - 1\)</span></p>
 <p>We then calculate the indices of the kernel that is used. So during convolution, depending on the  index for which we’re calculating the values for, we need to decide the indices that are being used. We also declare a variable that stores the value of the product of two values in the array. These steps are done in the following manner.</p>
 <div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// miscellaneous</span>
 <span class="kt">int</span><span class="w"> </span><span class="n">finalOutputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
@@ -683,6 +681,79 @@ length(Output) = length(inputA) + length(inputB) - 1
 </div>
 <p>To launch the kernels, we must first prepare the launch-configuration parameters. In our case, since we’re using dynamic shared-memory too, in addition to the <em>gridConfiguration</em> and <em>blockConfiguration</em>, we’ll need to provide shared-memory size too. Our kernel is written in such a way that each block is responsible for the output at each index. Thus, this means that the number of threads assigned to a block must be greater than or equal to the number of elements in the kernel. And due to the same reason of each block being assigned the output at each index, the number of blocks will correspond to the length of the output of the convolution operation.</p>
 <p>Once the <em>gridConfiguration</em> and <em>blockConfiguration</em> has been setup, we perform the kernel launch in the following manner with the third launch-configuration parameter being the size of the shared-memory.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Preparing and calling kernel</span>
+<span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="n">kernelArray</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="n">dim3</span><span class="w"> </span><span class="nf">gridConfiguration</span><span class="p">(</span><span class="n">outputLength</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+<span class="n">conv</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span><span class="w"> </span>
+<span class="w">        </span><span class="n">blockConfiguration</span><span class="p">,</span>
+<span class="w">        </span><span class="n">kernelArray</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                                                </span><span class="n">kernelArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                                                </span><span class="n">outputArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                                                </span><span class="n">inputArray</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                                                </span><span class="n">kernelArray</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The kernel launch in the above case is blocking, which means that the lines after the kernel launch will be executed only after the call has been completed. So we can copy the results back without waiting. Since we’re using the class to encapsulate everything, we can fetch the results back from the device global memory to host memory using the class method, <em>copyFromDeviceToHost</em> in the following manner.</p>
+<div class="highlight-C++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// Fetching Data from GPU to Host</span>
+<span class="n">outputArray</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+<span class="err">\</span><span class="n">end</span><span class="p">{</span><span class="n">lstlisting</span><span class="p">}</span>
+
+<span class="o">%</span><span class="w"> </span><span class="n">shutting</span><span class="w"> </span><span class="n">down</span><span class="w"> </span><span class="o">----------------------------------------------------------------</span>
+<span class="n">This</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">followed</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">usual</span><span class="w"> </span><span class="n">lines</span><span class="w"> </span><span class="n">when</span><span class="w"> </span><span class="n">finishing</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">use</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">gpu</span><span class="w"> </span><span class="n">devices</span><span class="p">.</span><span class="w"> </span>
+<span class="err">\</span><span class="n">begin</span><span class="p">{</span><span class="n">lstlisting</span><span class="p">}</span>
+<span class="c1">// Shutting down</span>
+<span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="n">cudaDeviceReset</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="matlab-code">
+<h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<p>Now that we’ve setup the cuda-code for this, we shall start by compiling the code.</p>
+<div class="highlight-MATLAB notranslate"><div class="highlight"><pre><span></span><span class="c">%% Basic Setup</span>
+<span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span><span class="w"> </span><span class="n">close</span><span class="w"> </span><span class="s">all</span><span class="p">;</span><span class="w"> </span>
+
+<span class="c">%% Compiling mex-code</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">conv00.cu</span>
+</pre></div>
+</div>
+<p>For demonstrating convolution, we use an averaging kernel with a signal that is made of two frequencies: 50Hz and 7KHz. They are setup in the following manner.</p>
+<div class="highlight-MATLAB notranslate"><div class="highlight"><pre><span></span><span class="c">%% Preparing input signal</span>
+<span class="c">% global parameters</span>
+<span class="n">samplingFrequency</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">16000</span><span class="p">;</span>
+<span class="n">timeArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">10000</span><span class="p">)</span><span class="o">/</span><span class="n">samplingFrequency</span><span class="p">;</span>
+
+<span class="c">% first signal parameter</span>
+<span class="n">signalFrequencyA</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">50</span><span class="p">;</span>
+<span class="n">inputArrayA</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">pi</span><span class="o">*</span><span class="n">signalFrequencyA</span><span class="o">*</span><span class="n">timeArray</span><span class="p">);</span>
+
+<span class="c">% second signal</span>
+<span class="n">signalFrequencyB</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">7000</span><span class="p">;</span>
+<span class="n">inputArrayB</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">pi</span><span class="o">*</span><span class="n">signalFrequencyB</span><span class="o">*</span><span class="n">timeArray</span><span class="p">);</span>
+
+<span class="c">% adding up the two signals</span>
+<span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">inputArrayA</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">inputArrayB</span><span class="p">;</span>
+
+<span class="c">% transposing the signal</span>
+<span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">transpose</span><span class="p">(</span><span class="n">inputArray</span><span class="p">);</span>
+
+<span class="c">%% Setting up the convolution  kernel</span>
+<span class="n">convKernel</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">transpose</span><span class="p">(</span><span class="nb">ones</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">10</span><span class="p">)));</span>
+<span class="n">convKernel</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">convKernel</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">convKernel</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Now that the inputs are setup, we call the mexcuda function and pass the arguments in the function call. The results are then plotted.</p>
+<div class="highlight-MATLAB notranslate"><div class="highlight"><pre><span></span><span class="c">%% Calling the function</span>
+<span class="nb">tic</span>
+<span class="n">outputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">conv00</span><span class="p">(</span><span class="n">inputArray</span><span class="p">,</span><span class="w"> </span><span class="n">convKernel</span><span class="p">);</span>
+<span class="n">toc</span>
+
+<span class="s">%%</span><span class="w"> </span><span class="s">Plotting</span><span class="w"> </span><span class="s">before</span><span class="w"> </span><span class="s">vs</span><span class="w"> </span><span class="s">after</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">inputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Array: Pre-filtering \n&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">outputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Array: Post-Filtering \n&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -752,6 +823,7 @@ length(Output) = length(inputA) + length(inputB) - 1
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-code">MexCUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
 </ul>
   </nav></div>
 

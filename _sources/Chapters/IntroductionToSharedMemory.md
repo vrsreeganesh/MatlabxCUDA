@@ -115,10 +115,7 @@ The amount of shared-memory required for this particular operation depends on th
 extern __shared__ double sharedMem[];
 ```
 
-Before we go ahead with the computation, we need to calculate some metrics that we'll need. The first is the final-length of the output. We use the standard equation of convolution to obtain this particular length, which is given by 
-$$
-length(Output) = length(inputA) + length(inputB) - 1
-$$
+Before we go ahead with the computation, we need to calculate some metrics that we'll need. The first is the final-length of the output. We use the standard equation of convolution to obtain this particular length, which is given by $length(Output) = length(inputA) + length(inputB) - 1$
 
 We then calculate the indices of the kernel that is used. So during convolution, depending on the  index for which we're calculating the values for, we need to decide the indices that are being used. We also declare a variable that stores the value of the product of two values in the array. These steps are done in the following manner. 
 ```C++
@@ -303,3 +300,81 @@ To launch the kernels, we must first prepare the launch-configuration parameters
 
 Once the *gridConfiguration* and *blockConfiguration* has been setup, we perform the kernel launch in the following manner with the third launch-configuration parameter being the size of the shared-memory. 
 
+```C++
+// Preparing and calling kernel
+dim3 blockConfiguration(kernelArray.inputDimensions[0], 1, 1);
+dim3 gridConfiguration(outputLength,1,1);
+conv<<<gridConfiguration, 
+        blockConfiguration,
+        kernelArray.inputDimensions[0]*sizeof(double)>>>(inputArray.d_inputPointer_real,
+                                                                kernelArray.d_inputPointer_real,
+                                                                outputArray.d_inputPointer_real,
+                                                                inputArray.d_inputDimensions,
+                                                                kernelArray.d_inputDimensions);
+```
+
+
+The kernel launch in the above case is blocking, which means that the lines after the kernel launch will be executed only after the call has been completed. So we can copy the results back without waiting. Since we're using the class to encapsulate everything, we can fetch the results back from the device global memory to host memory using the class method, *copyFromDeviceToHost* in the following manner. 
+
+```C++
+// Fetching Data from GPU to Host
+outputArray.copyFromDeviceToHost();
+\end{lstlisting}
+
+% shutting down ----------------------------------------------------------------
+This is followed by the usual lines when finishing the use of gpu devices. 
+\begin{lstlisting}
+// Shutting down
+cudaDeviceSynchronize();
+cudaDeviceReset();
+```
+
+## Matlab Code
+Now that we've setup the cuda-code for this, we shall start by compiling the code. 
+```MATLAB
+%% Basic Setup
+clc; clear; close all; 
+
+%% Compiling mex-code
+mexcuda conv00.cu
+```
+
+For demonstrating convolution, we use an averaging kernel with a signal that is made of two frequencies: 50Hz and 7KHz. They are setup in the following manner. 
+```MATLAB
+%% Preparing input signal
+% global parameters
+samplingFrequency = 16000;
+timeArray = (1:10000)/samplingFrequency;
+
+% first signal parameter
+signalFrequencyA = 50;
+inputArrayA = sin(2*pi*signalFrequencyA*timeArray);
+
+% second signal
+signalFrequencyB = 7000;
+inputArrayB = sin(2*pi*signalFrequencyB*timeArray);
+
+% adding up the two signals
+inputArray = inputArrayA + inputArrayB;
+
+% transposing the signal
+inputArray = transpose(inputArray);
+
+%% Setting up the convolution  kernel
+convKernel = transpose(ones(size(1:10)));
+convKernel = convKernel/sum(convKernel);
+```
+
+
+Now that the inputs are setup, we call the mexcuda function and pass the arguments in the function call. The results are then plotted. 
+```MATLAB
+%% Calling the function
+tic
+outputArray = conv00(inputArray, convKernel);
+toc
+
+%% Plotting before vs after
+figure(1);
+subplot(1,2,1); plot(inputArray); title("Array: Pre-filtering \n");
+subplot(1,2,2); plot(outputArray); title("Array: Post-Filtering \n");
+```
