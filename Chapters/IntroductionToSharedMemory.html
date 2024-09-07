@@ -356,7 +356,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -372,6 +374,14 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -383,6 +393,10 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="introduction-to-shared-memory">
 <h1>Introduction to Shared Memory<a class="headerlink" href="#introduction-to-shared-memory" title="Link to this heading">#</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>In this chapter, we introduce shared-memory and how to use it through a very simple example. Shared-memory is a class of on-chip memory in NVIDIA GPUs that is primarily used by threads, within a thread-block, to collaborate. Convolution is a mathematical operation on two functions that produces a third function. The process of convolution calls for the threads to collaborate, due to the accumulative nature of the operation. Thus, making it an excellent example to present the use of shared-memory.</p>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -430,6 +444,21 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
