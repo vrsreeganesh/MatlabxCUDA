@@ -251,10 +251,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     
     // calling function
     Stencil_ConstantMemory<<<grid,
-                                block>>>(inputA.d_inputPointer_real, 
-                                        outputC.d_inputPointer_real, 
-                                        inputA.d_inputDimensions, 
-                                        inputB.d_inputDimensions);
+                             block>>>(inputA.d_inputPointer_real, 
+                                      outputC.d_inputPointer_real, 
+                                      inputA.d_inputDimensions, 
+                                      inputB.d_inputDimensions);
     
     ...
 }
