@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Frequency Domain Beamforming &#8212; An Introduction to MATLAB x CUDA</title>
+    <title>Frequency Domain Beamforming with Sensor-Weighing &#8212; An Introduction to MATLAB x CUDA</title>
   
   
   
@@ -57,11 +57,10 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/Beamforming_FrequencyDomainBeamforming';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/Beamforming_WindowedFrequencyDomainBeamforming';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Frequency Domain Beamforming with Sensor-Weighing" href="Beamforming_WindowedFrequencyDomainBeamforming.html" />
-    <link rel="prev" title="Beamforming" href="../Beamforming.html" />
+    <link rel="prev" title="Frequency Domain Beamforming" href="Beamforming_FrequencyDomainBeamforming.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -213,8 +212,8 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../Beamforming.html">Beamforming</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Frequency Domain Beamforming</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Beamforming_WindowedFrequencyDomainBeamforming.html">Frequency Domain Beamforming with Sensor-Weighing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Beamforming_FrequencyDomainBeamforming.html">Frequency Domain Beamforming</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Frequency Domain Beamforming with Sensor-Weighing</a></li>
 </ul>
 </details></li>
 </ul>
@@ -288,7 +287,7 @@
       
       
       
-      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/Sections/Beamforming_FrequencyDomainBeamforming.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/Sections/Beamforming_WindowedFrequencyDomainBeamforming.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -318,7 +317,7 @@
       
       
       
-      <li><a href="../../_sources/Chapters/Sections/Beamforming_FrequencyDomainBeamforming.md" target="_blank"
+      <li><a href="../../_sources/Chapters/Sections/Beamforming_WindowedFrequencyDomainBeamforming.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -402,7 +401,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Frequency Domain Beamforming</h1>
+    <h1>Frequency Domain Beamforming with Sensor-Weighing</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -412,7 +411,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
 </ul>
             </nav>
@@ -425,10 +424,13 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="frequency-domain-beamforming">
-<h1>Frequency Domain Beamforming<a class="headerlink" href="#frequency-domain-beamforming" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="frequency-domain-beamforming-with-sensor-weighing">
+<h1>Frequency Domain Beamforming with Sensor-Weighing<a class="headerlink" href="#frequency-domain-beamforming-with-sensor-weighing" title="Link to this heading">#</a></h1>
+<p>Traditional beamforming (ie, rectangular windowing) brings along with it significant disadvantages. The first-order, second-order and third-order sidelobes are respectively only 13.5, 18 and 21 dB below the peak level of the main lobe. Strong signals will be detected through the sidelobes of adjacent beams as well as, correctly, in the main lobe of the beam at the bearing of the signal. The resultant bearing ambiguity and additional, false, signals complicate all further
+processes [1].</p>
+<p>The aim, therefore, should be to produce the narrowest possible main lobe consistent with some reasonable level of sidelobes. One such method is chebyshev window. Here, we multiply the amplitude of each element’s output with shading coefficients obtained from the chebwin function in matlab.</p>
 <section id="matlab-code">
-<h2>MATLAB Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
 <div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">=================================================================================</span>
 <span class="cm">Aim: Implementing directional frequency-domain beamforming</span>
@@ -468,22 +470,37 @@ document.write(`
 <span class="n">anglesToBeamform</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">180</span><span class="p">,</span><span class="w"> </span><span class="mi">512</span><span class="p">);</span>
 <span class="n">delaysToBeamform</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">x</span><span class="o">*</span><span class="nb">cosd</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">)</span><span class="o">/</span><span class="n">sound_speed</span><span class="p">;</span>
 
+<span class="c">%% Building Sensor Weights</span>
+<span class="n">cheb_window</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">chebwin</span><span class="p">(</span><span class="n">num_sensors</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">);</span>
+
 <span class="c">%% compiling the mex-code</span>
-<span class="n">mexcuda</span><span class="w"> </span><span class="s">fdb_v2_structure.cu</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">fdb_SensorWeights.cu</span>
 
 <span class="c">%% calling the function</span>
 <span class="n">signalMatrix_fft</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">fft</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">);</span>
-<span class="n">beamformedMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">fdb_v2</span><span class="p">(</span><span class="n">signalMatrix_fft</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
-<span class="w">                            </span><span class="n">delaysToBeamform</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
-<span class="w">                            </span><span class="n">Fs</span><span class="p">);</span>
-<span class="n">beamformedMatrix_ifft</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">ifft</span><span class="p">(</span><span class="n">beamformedMatrix</span><span class="p">);</span>
+<span class="n">beamformedMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">fdb_SensorWeights</span><span class="p">(</span><span class="n">signalMatrix_fft</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">delaysToBeamform</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">Fs</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">cheb_window</span><span class="p">);</span>
+
+<span class="c">%% Plotting beampattern with windowing</span>
+<span class="n">index_of_interest</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">floor</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">signal_frequency</span><span class="o">/</span><span class="n">Fs</span><span class="p">);</span>
+<span class="n">rowOfInterest</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">beamformedMatrix</span><span class="p">(</span><span class="n">index_of_interest</span><span class="p">,:));</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="n">rowOfInterest</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;linear-Beampattern, windowing&quot;</span><span class="p">)</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="nb">log</span><span class="p">(</span><span class="n">rowOfInterest</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;log-beampattern, windowing&quot;</span><span class="p">)</span>
+
+<span class="c">%% Plotting without windowing</span>
+<span class="n">beamformedMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">fdb_SensorWeights</span><span class="p">(</span><span class="n">signalMatrix_fft</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">delaysToBeamform</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">Fs</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="nb">ones</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">cheb_window</span><span class="p">)));</span>
 
 <span class="c">%% Plotting beampattern</span>
 <span class="n">index_of_interest</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">floor</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">signal_frequency</span><span class="o">/</span><span class="n">Fs</span><span class="p">);</span>
 <span class="n">rowOfInterest</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">beamformedMatrix</span><span class="p">(</span><span class="n">index_of_interest</span><span class="p">,:));</span>
-<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="n">rowOfInterest</span><span class="p">);</span>
-<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="nb">log</span><span class="p">(</span><span class="n">rowOfInterest</span><span class="p">));</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="n">rowOfInterest</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;linear-beampattern, non-windowing&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="nb">log</span><span class="p">(</span><span class="n">rowOfInterest</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;linear-beampattern, non-windowing&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </section>
@@ -509,7 +526,8 @@ document.write(`
 <span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_d_inputPointer_real</span><span class="p">,</span>
 <span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_d_inputPointer_imag</span><span class="p">,</span>
 <span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">delays_d_inputPointer</span><span class="p">,</span>
-<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="n">sampling_frequency</span><span class="p">)</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="n">sampling_frequency</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">sensorWindow_d_inputPointer_real</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="c1">// declaring the shared memory</span>
 <span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
@@ -525,7 +543,9 @@ document.write(`
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bidy</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
 
 <span class="w">    </span><span class="c1">// linear addressing into the inputs</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
 
 <span class="w">    </span><span class="c1">// miscellaneous</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_sensors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
@@ -542,8 +562,12 @@ document.write(`
 <span class="w">                            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">delays_d_inputPointer</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">];</span>
 
 <span class="w">        </span><span class="c1">// obtaining current real and imaginary part</span>
-<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signalMatrix_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">];</span>
-<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signalMatrix_d_inputPointer_imag</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">];</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">signalMatrix_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">sensorWindow_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_dim1</span><span class="p">];</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">signalMatrix_d_inputPointer_imag</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">sensorWindow_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_dim1</span><span class="p">];</span>
 
 <span class="w">        </span><span class="c1">// obtaining resulting real and imaginary parts</span>
 <span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">result_real_part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current_real</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">current_imag</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">wt</span><span class="p">);</span>
@@ -593,10 +617,16 @@ document.write(`
 <span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">signalMatrix</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
 <span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">delayMatrix</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
 <span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">sampling_frequency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">mxGetScalar</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">sensorWindow</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">3</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// A minor check</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">sensorWindow</span><span class="p">.</span><span class="n">numElements</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Length of window is expected to be number of sensors </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 
 <span class="w">    </span><span class="c1">// Sending the data and input-dimensions to the GPU</span>
 <span class="w">    </span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
 <span class="w">    </span><span class="n">delayMatrix</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">sensorWindow</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
 
 <span class="w">    </span><span class="c1">// preparing to create output</span>
 <span class="w">    </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_outputDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
@@ -627,8 +657,8 @@ document.write(`
 <span class="w">                        </span><span class="n">beamformedMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
 <span class="w">                        </span><span class="n">beamformedMatrix</span><span class="p">.</span><span class="n">d_inputPointer_imag</span><span class="p">,</span>
 <span class="w">                        </span><span class="n">delayMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
-<span class="w">                        </span><span class="n">sampling_frequency</span><span class="p">);</span>
-
+<span class="w">                        </span><span class="n">sampling_frequency</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">sensorWindow</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">);</span>
 
 <span class="w">    </span><span class="c1">// copying the data from the device to the host</span>
 <span class="w">    </span><span class="n">beamformedMatrix</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
@@ -636,7 +666,7 @@ document.write(`
 <span class="w">    </span><span class="c1">// shutting down</span>
 <span class="w">    </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
 <span class="w">    </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
-<span class="p">}</span><span class="w">     </span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
@@ -673,22 +703,13 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../Beamforming.html"
+       href="Beamforming_FrequencyDomainBeamforming.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Beamforming</p>
+        <p class="prev-next-title">Frequency Domain Beamforming</p>
       </div>
-    </a>
-    <a class="right-next"
-       href="Beamforming_WindowedFrequencyDomainBeamforming.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Frequency Domain Beamforming with Sensor-Weighing</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -706,7 +727,7 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
 </ul>
   </nav></div>
