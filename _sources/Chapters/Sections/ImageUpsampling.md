@@ -1,4 +1,4 @@
-# Upsampling (not interpolation)
+# Upsampling
 
 Image upsampling is a technique used to increase the resolution of an image by inserting additional pixels between the original ones, effectively enlarging the image while attempting to preserve its visual quality. Unlike interpolation, which estimates the values of new pixels based on neighboring pixels, upsampling primarily involves the insertion of zeros or repeated values in a systematic way, followed by filtering to smooth out the result. In mathematical terms, if the original image is represented as a matrix \( I \) of size \( M \times N \), upsampling by a factor of \( L \) involves creating a new matrix \( I_{up} \) of size \( LM \times LN \), where the new matrix has zeros or repeated pixel values inserted between the original ones. For instance, when upsampling by zero insertion, the upsampled image \( I_{up} \) can be represented as:
 

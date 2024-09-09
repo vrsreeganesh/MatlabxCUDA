@@ -1,4 +1,4 @@
-# Downsampling (not decimation)
+# Downsampling
 
 Image downsampling is the process of reducing the resolution of an image by decreasing its number of pixels. This is typically achieved by averaging or combining groups of pixels into single pixels. A common method for downsampling is using a box filter, where a block of \( n \times n \) pixels in the original image is averaged to produce a single pixel in the downsampled image. Mathematically, if the original image has pixel values \( I(x, y) \), the downsampled image with a scaling factor of \( n \) will have pixel values given by:
 \[ I_{\text{downsampled}}(i, j) = \frac{1}{n^2} \sum_{k=0}^{n-1} \sum_{l=0}^{n-1} I(i \cdot n + k, j \cdot n + l) \]
