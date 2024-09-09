@@ -4,7 +4,39 @@
 format: jb-book
 root: intro
 chapters:
-- file: markdown
-- file: notebooks
-- file: markdown-notebooks
-- file: mymarkdownfile
+- file: Chapters/AboutMatlab
+- file: Chapters/AboutCuda
+- file: Chapters/SkeletalMex
+- file: Chapters/CUDAMemoryModel
+- file: Chapters/BasicMexExamples
+  sections:
+  - file: Chapters/Sections/HelloWorld
+  - file: Chapters/Sections/CalculatingRowMean
+  - file: Chapters/Sections/FillingAnMxArray
+  - file: Chapters/Sections/MultiplyingRowMatrixWithScalar
+  - file: Chapters/Sections/ElementWiseMultiplyingTwo2DMatrices
+  - file: Chapters/Sections/MatrixMultiplication
+  - file: Chapters/Sections/AXPY
+- file: Chapters/IntroductionToSharedMemory
+- file: Chapters/IntroductionToConstantMemory
+- file: Chapters/IntroductionToDynamicParallelism
+- file: Chapters/ImageProcessing
+  sections:
+  - file: Chapters/Sections/ImageUpsampling
+  - file: Chapters/Sections/ImageDownsampling
+  - file: Chapters/Sections/ImageDecimation
+  - file: Chapters/Sections/ImageInterpolation
+  - file: Chapters/Sections/Image_RGB2YCbCr
+  - file: Chapters/Sections/Image_YCbCr2RGB
+- file: Chapters/DigitalSignalProcessing
+  sections:
+  - file: Chapters/Sections/DSP_Convolution
+  - file: Chapters/Sections/DSP_Downsampling
+  - file: Chapters/Sections/DSP_Upsampling
+  - file: Chapters/Sections/DSP_Decimation
+  - file: Chapters/Sections/DSP_Interpolation
+- file: Chapters/Beamforming
+  sections:
+  - file: Chapters/Sections/Beamforming_FrequencyDomainBeamforming
+  - file: Chapters/Sections/Beamforming_WindowedFrequencyDomainBeamforming
+- file: Chapters/ComputationalImaging

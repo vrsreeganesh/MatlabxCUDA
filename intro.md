@@ -1,11 +1,10 @@
-# Welcome to your Jupyter Book
+# An Introduction to Matlab x CUDA 
+This book is currently under construction. Please drop by later. 
 
-This is a small sample book to give you a feel for how book content is
-structured.
-It shows off a few of the major file types, as well as some sample content.
-It does not go in-depth into any particular topic - check out [the Jupyter Book documentation](https://jupyterbook.org) for more information.
+Being a student and writing a book is no joke 💀
+![The risk I took was calculated but oh boy, am I bad at math](https://i.kym-cdn.com/entries/icons/original/000/024/785/Screen_Shot_2017-11-30_at_1.12.37_PM.png)
 
-Check out the content pages bundled with this sample book to see more.
+
 
 ```{tableofcontents}
 ```
