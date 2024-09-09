@@ -1,0 +1,768 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The Skeletal Structure &#8212; An Introduction to MATLAB x CUDA</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/SkeletalMex';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Basic Mex Examples" href="BasicMexExamples.html" />
+    <link rel="prev" title="About CUDA" href="AboutCuda.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/matlabxcudalogo.png" class="logo__image only-light" alt="An Introduction to MATLAB x CUDA - Home"/>
+    <script>document.write(`<img src="../_static/matlabxcudalogo.png" class="logo__image only-dark" alt="An Introduction to MATLAB x CUDA - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    An Introduction to Matlab x CUDA
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="AboutMatlab.html">About MATLAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AboutCuda.html">About CUDA</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">The Skeletal Structure</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="BasicMexExamples.html">Basic Mex Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="Sections/HelloWorld.html">Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/CalculatingRowMean.html">Calculating Row Mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/FillingAnMxArray.html">Filling an mxArray</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/MultiplyingRowMatrixWithScalar.html">Multiplying a row-matrix with a scalar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/ElementWiseMultiplyingTwo2DMatrices.html">Element-wise multiplying two 2D-matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/MatrixMultiplication.html">Matrix Multiplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/AXPY.html">AXPY Implementation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroductionToSharedMemory.html">Introduction to Shared Memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroductionToConstantMemory.html">Introduction to Constant Memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroductionToDynamicParallelism.html">Introduction To Dynamic Parallelism</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="ImageProcessing.html">Image Processing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="Sections/ImageUpsampling.html">Upsampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/ImageDownsampling.html">Downsampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/ImageDecimation.html">Decimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/ImageInterpolation.html">Interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/Image_RGB2YCbCr.html">RGB to YCbCr</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/Image_YCbCr2RGB.html">YCbCr to RGB</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="DigitalSignalProcessing.html">Digital Signal Processing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="Sections/DSP_Convolution.html">Standard Convolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/DSP_Downsampling.html">Signal Downsampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/DSP_Upsampling.html">Signal Upsampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/DSP_Decimation.html">Decimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/DSP_Interpolation.html">Interpolation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="Beamforming.html">Beamforming</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="Sections/Beamforming_FrequencyDomainBeamforming.html">Frequency Domain Beamforming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/Beamforming_WindowedFrequencyDomainBeamforming.html">Frequency Domain Beamforming with Sensor-Weighing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="ComputationalImaging.html">Computational Imaging</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/SkeletalMex.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/Chapters/SkeletalMex.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>The Skeletal Structure</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway Function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-number-of-inputs-and-outputs">Checking number of Inputs and Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-the-data-types-of-inputs">Checking the Data-types of Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#obtaining-input-dimensions">Obtaining Input Dimensions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#obtaining-pointers-to-input-arguments">Obtaining Pointers to Input Arguments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-output-structure">Setting Up Output Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#obtaining-pointer-to-output">Obtaining Pointer to Output</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#miscellaneous">Miscellaneous</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="the-skeletal-structure">
+<h1>The Skeletal Structure<a class="headerlink" href="#the-skeletal-structure" title="Link to this heading">#</a></h1>
+<p>There are a number of ways to interface Matlab with CUDA. We shall start with the most basic example and the more sophisticated approaches shall be presented later.</p>
+<section id="gateway-function">
+<h2>Gateway Function<a class="headerlink" href="#gateway-function" title="Link to this heading">#</a></h2>
+<p>The first is the gateway function. The gateway function in Mex is not-unlike the main function. It is the function that is called by matlab when we call a Mex code. It takes in mainly four arguments.
+\begin{itemize}
+\item nlhs: the number of outputs we expect the function to return
+\item *plhs[]: an array of pointers that is expected to contain the pointers to the structures that we’re returning. So if we’re returning two arrays as results, then the first element will contain the pointer to the first array and the second element will contain the pointer to the second array.
+\item nrhs: the number of inputs that were passed during this function call
+\item *prhs[]: an array of containing pointers that point to the different data structures that are made available to this particular function.
+\end{itemize}</p>
+</section>
+<section id="checking-number-of-inputs-and-outputs">
+<h2>Checking number of Inputs and Outputs<a class="headerlink" href="#checking-number-of-inputs-and-outputs" title="Link to this heading">#</a></h2>
+<p>Once this function is written, there are a number of checks that needs to be performed. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs</p>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">//</span><span class="w"> </span><span class="n">expects</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="n">output</span>
+<span class="n">outputMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">firstFunction</span><span class="p">();</span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">expects</span><span class="w"> </span><span class="n">two</span><span class="w"> </span><span class="n">outputs</span>
+<span class="p">[</span><span class="n">outputMatrixA</span><span class="p">,</span><span class="w"> </span><span class="n">outputMatrixB</span><span class="p">]</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">secondFunction</span><span class="p">();</span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">expects</span><span class="w"> </span><span class="n">three</span><span class="w"> </span><span class="n">outputs</span>
+<span class="p">[</span><span class="n">outputMatrixA</span><span class="p">,</span><span class="w"> </span><span class="n">outputMatrixB</span><span class="p">,</span><span class="w"> </span><span class="n">outputMatrixC</span><span class="p">]</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">thirdFunction</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Since nlhs and nrhs are integers, regular C checking should work. We then use a function present in Mex API that allows us to signal to MATLAB that an error has occurred. There are a number of ways to signal to MATLAB that an error has occurred but we choose the simplest. THere are more sophisticated methods to signal to MATLAB about this but we choose to go with the most simple functions, mxErrMsgTxt.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="c1">// checking number of inputs</span>
+<span class="w">	</span><span class="k">if</span><span class="p">(</span><span class="n">nrhs</span><span class="o">!=</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">	</span><span class="p">{</span>
+<span class="w">		</span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="err">``</span><span class="n">Number</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">Inputs</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">Wrong</span><span class="w"> </span><span class="err">\</span><span class="n">n</span><span class="err">&#39;&#39;</span><span class="p">);</span>
+<span class="w">	</span><span class="p">}</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// checking the number of outputs</span>
+<span class="w">	</span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">	</span><span class="p">{</span>
+<span class="w">		</span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="err">``</span><span class="n">Number</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">Expected</span><span class="w"> </span><span class="n">Outputs</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">Wrong</span><span class="w"> </span><span class="err">\</span><span class="n">n</span><span class="err">&#39;&#39;</span><span class="p">);</span>
+<span class="w">	</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="checking-the-data-types-of-inputs">
+<h2>Checking the Data-types of Inputs<a class="headerlink" href="#checking-the-data-types-of-inputs" title="Link to this heading">#</a></h2>
+<p>Once the number of inputs and outputs are checked, we check the data-type of the inputs. This is again done with the help of a set of functions provided by the Mex-API. There are a number of functions that help with this. To following list gives the basic set.</p>
+<ul class="simple">
+<li><p>mxIsDouble()</p></li>
+<li><p>mxIsComplex()</p></li>
+<li><p>mxGetNumberOfElements()</p></li>
+<li><p>list five more</p></li>
+</ul>
+<p>Based on the data-structures you’re working with, you’ll have to mix and match these functions to make sure that the argument meets the conditions of the data-structure that we’re expecting. The following shows some basic tests.</p>
+<p>The following shows the basic way of testing whether an incoming data-structure is a double variable, array or matrix. Note that we assume it is the first input argument. The first datatype-based check basically checks if the data is of type double and not complex.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="c1">// checking number of inputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// checking number of expected outputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// checking the input argument data-type</span>
+<span class="w">	</span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="w">	</span><span class="p">{</span>
+<span class="w">		</span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The Input is expected to be an array of type, double </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">	</span><span class="p">}</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// Rest of Code</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="obtaining-input-dimensions">
+<h2>Obtaining Input Dimensions<a class="headerlink" href="#obtaining-input-dimensions" title="Link to this heading">#</a></h2>
+<p>Once we make sure that we’ve received the right number of inputs, checked the outputs and then tested for the right data-type, we shall now find the way to obtain the dimensions of the input data. The following shows a simple way of obtaining the dimensions of the incoming array/matrix.</p>
+<p>There are a number of functions used to get the dimensions of the input architectures. Some of them are</p>
+<ul class="simple">
+<li><p>mxGetDimensions(): returns array containing the dimensions of the inputs.</p></li>
+<li><p>mxGetNumberOfElements(): returns the number of elements in the input data-structure (an array or a matrix);</p></li>
+<li><p>mxGetNumberOfDimensions(): this returns the dimensionality of the input argument.</p></li>
+</ul>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="c1">// check number of inputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// check number of outputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// check input data-type</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// obtaining dimensions of the array</span>
+<span class="w">	</span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">inputDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxGetDimensions</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">	</span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="n">numElements</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxGetNumberOfElements</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">	</span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="n">numDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxGetNumberOfDimensions</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// Rest of Code</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="obtaining-pointers-to-input-arguments">
+<h2>Obtaining Pointers to Input Arguments<a class="headerlink" href="#obtaining-pointers-to-input-arguments" title="Link to this heading">#</a></h2>
+<p>Now, we obtain the pointers to the input data-structures. The data structures: arrays or matrices are stored in the row-major format adhering to the conventions of C. So we access the input data-structures using a pointer. Using the pointer and the dimension information, we obtain the data values accordingly. There are a number of ways to obtain the pointers to the input data-structures. For now, we stick to the basic way of doing this, using, mxGetPr().</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="c1">// checking the number of inputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// checking the number of outputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// checking the input data types</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// obtaining dimensionality of the input arguments</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// Obtaining pointer to the input argument</span>
+<span class="w">	</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">inputPointer</span><span class="p">;</span>
+<span class="cp">#if MX_HAS_INTERLEAVED_COMPLEX</span>
+<span class="w">	</span><span class="n">inputPointer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxGetDoubles</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="cp">#else</span>
+<span class="w">	</span><span class="n">inputPointer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxGetPr</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="cp">#endif</span>
+
+<span class="w">	</span><span class="c1">// Rest of Code</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-up-output-structure">
+<h2>Setting Up Output Structure<a class="headerlink" href="#setting-up-output-structure" title="Link to this heading">#</a></h2>
+<p>Once we’ve created whatever data-structure we have in mind, we create an output. To create a matrix output, there are a number of ways to create this</p>
+<p>\begin{itemize}
+\item mxCreateNumericMatrix()
+\end{itemize}</p>
+<p>The following shows a simple example of assigning an output to the plhs</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="c1">// check the number of inputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// check the number of outputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// check the input data type</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// obtain the pointers to dimensionality</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// obtain pointer to the input data-structures</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// perform operations</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// creating output</span>
+<span class="w">	</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericMatrix</span><span class="p">(</span><span class="n">numRows</span><span class="p">,</span><span class="w"> </span><span class="n">numCols</span><span class="p">,</span><span class="w"> </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// Rest of Code</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="obtaining-pointer-to-output">
+<h2>Obtaining Pointer to Output<a class="headerlink" href="#obtaining-pointer-to-output" title="Link to this heading">#</a></h2>
+<p>Once we’ve setup the output data structure at plhs, we need to now obtain a pointer to it so that we can start copying the data to the structure. We obtain the pointers in a similar manner to how we obtained the pointer to the input arguments. Note that once the pointer to the output has been obtained, we use this pointer to store the results to. And once the mex-function ends, the data that was copied to this pointer is available at MATLAB as the data-structure that was returned.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="c1">// checking the number of inputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// checking the number of outputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// checking the input data type</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// obtaining dimensionality of inputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// Obtaining pointers to the inputs</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// Computation/Processing</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span><span class="c1">// Creating output</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// Obtaining pointers to the output</span>
+<span class="w">	</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">outputPointer</span><span class="p">;</span><span class="w"> </span>
+<span class="cp">#if MX_HAS_INTERLEAVED_COMPLEX</span>
+<span class="w">	</span><span class="n">outputPointer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxGetDoubles</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="cp">#else</span>
+<span class="w">	</span><span class="n">outputPointer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxGetDoubles</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="cp">#endif</span>
+
+<span class="w">	</span><span class="c1">// copying data from result to output pointer</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="w">	</span>
+<span class="w">	</span><span class="c1">// rest of the code</span>
+<span class="w">	</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="miscellaneous">
+<h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Link to this heading">#</a></h2>
+<p>make sure that the data is cleaned-up through free() and cudaFree().</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./Chapters"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="AboutCuda.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">About CUDA</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="BasicMexExamples.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Basic Mex Examples</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway Function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-number-of-inputs-and-outputs">Checking number of Inputs and Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#checking-the-data-types-of-inputs">Checking the Data-types of Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#obtaining-input-dimensions">Obtaining Input Dimensions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#obtaining-pointers-to-input-arguments">Obtaining Pointers to Input Arguments</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-output-structure">Setting Up Output Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#obtaining-pointer-to-output">Obtaining Pointer to Output</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#miscellaneous">Miscellaneous</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Sreeganesh Valathara Rajendran
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
