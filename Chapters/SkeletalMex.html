@@ -436,7 +436,7 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="the-skeletal-structure">
 <h1>The Skeletal Structure<a class="headerlink" href="#the-skeletal-structure" title="Link to this heading">#</a></h1>
-<p>There are a number of ways to interface Matlab with CUDA. We shall start with the most basic example and the more sophisticated approaches shall be presented later.</p>
+<p>In this section, we introduce the mex-cuda structure that we will be following throughout the examples. Note that there are a number of ways to interface CUDA with Matlab using Mex. However, we start with the simple approaches and build up the more difficult methods as we go through.</p>
 <section id="gateway-function">
 <h2>Gateway Function<a class="headerlink" href="#gateway-function" title="Link to this heading">#</a></h2>
 <p>The first is the gateway function. The gateway function in Mex is not-unlike the main function. It is the function that is called by matlab when we call a Mex code. It takes in mainly four arguments.

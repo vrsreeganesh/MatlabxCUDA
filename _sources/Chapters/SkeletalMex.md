@@ -1,6 +1,5 @@
 # The Skeletal Structure
-
-There are a number of ways to interface Matlab with CUDA. We shall start with the most basic example and the more sophisticated approaches shall be presented later. 
+In this section, we introduce the mex-cuda structure that we will be following throughout the examples. Note that there are a number of ways to interface CUDA with Matlab using Mex. However, we start with the simple approaches and build up the more difficult methods as we go through. 
 
 
 ## Gateway Function
