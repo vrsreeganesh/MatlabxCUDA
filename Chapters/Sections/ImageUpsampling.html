@@ -1,0 +1,674 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Upsampling (not interpolation) &#8212; An Introduction to MATLAB x CUDA</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/ImageUpsampling';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Image Processing Examples" href="../ImageProcessing.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/matlabxcudalogo.png" class="logo__image only-light" alt="An Introduction to MATLAB x CUDA - Home"/>
+    <script>document.write(`<img src="../../_static/matlabxcudalogo.png" class="logo__image only-dark" alt="An Introduction to MATLAB x CUDA - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../intro.html">
+                    An Introduction to Matlab x CUDA
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../AboutMatlab.html">About MATLAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AboutCuda.html">About CUDA</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../BasicMexExamples.html">Basic Mex Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="HelloWorld.html">Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CalculatingRowMean.html">Calculating Row Mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FillingAnMxArray.html">Filling an mxArray</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MultiplyingRowMatrixWithScalar.html">Multiplying a row-matrix with a scalar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ElementWiseMultiplyingTwo2DMatrices.html">Element-wise multiplying two 2D-matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MatrixMultiplication.html">Matrix Multiplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AXPY.html">AXPY Implementation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../IntroductionToSharedMemory.html">Introduction to Shared Memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../IntroductionToConstantMemory.html">Introduction to Constant Memory (not complete)</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../ImageProcessing.html">Image Processing Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Upsampling (not interpolation)</a></li>
+</ul>
+</details></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/Sections/ImageUpsampling.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/Chapters/Sections/ImageUpsampling.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Upsampling (not interpolation)</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="upsampling-not-interpolation">
+<h1>Upsampling (not interpolation)<a class="headerlink" href="#upsampling-not-interpolation" title="Link to this heading">#</a></h1>
+<p>Image upsampling is a technique used to increase the resolution of an image by inserting additional pixels between the original ones, effectively enlarging the image while attempting to preserve its visual quality. Unlike interpolation, which estimates the values of new pixels based on neighboring pixels, upsampling primarily involves the insertion of zeros or repeated values in a systematic way, followed by filtering to smooth out the result. In mathematical terms, if the original image is represented as a matrix ( I ) of size ( M \times N ), upsampling by a factor of ( L ) involves creating a new matrix ( I_{up} ) of size ( LM \times LN ), where the new matrix has zeros or repeated pixel values inserted between the original ones. For instance, when upsampling by zero insertion, the upsampled image ( I_{up} ) can be represented as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+I_{up}(x, y) = 
+\begin{cases} 
+    I(x/L, y/L) &amp; \text{if } x = kL \text{ and } y = lL \text{ for integers } k, l \\
+    0 &amp; \text{otherwise}
+\end{cases}
+\end{split}\]</div>
+<p>To achieve a visually pleasing result, this upsampled image is typically processed with a low-pass filter, which interpolates the zero or repeated values to create smooth transitions between the original pixel values.</p>
+<p>Image upsampling is widely used in various applications, such as in digital zooming, where an image is magnified without capturing new data, thus requiring the enhancement of existing pixels to maintain quality. In satellite and aerial imaging, upsampling is crucial for enhancing low-resolution images, allowing for detailed analysis of geographical features and urban landscapes. Additionally, upsampling is employed in medical imaging, where higher resolution images can improve the visualization of anatomical structures and aid in diagnosis. For example, in computed tomography (CT) scans, upsampling can help generate more detailed cross-sectional images of the body. Moreover, upsampling plays a significant role in the field of image super-resolution, where machine learning algorithms are trained to upscale images, producing higher resolution outputs from low-resolution inputs, often used in security and surveillance systems to enhance the clarity of captured images.</p>
+<section id="matlab-code">
+<h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
+<span class="cm">    Aim: Demonstrating Upsampling with CUDA Kernels</span>
+<span class="cm">%}</span>
+
+<span class="c">%% Basic setup</span>
+<span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span>
+
+<span class="c">%% Compiling Code</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">upsampling_ip_cuda.cu</span>
+
+<span class="c">%% Preparing Input</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">256</span><span class="p">);</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">repmat</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]);</span>
+<span class="n">upsamplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+
+<span class="c">%% Calling function</span>
+<span class="n">outputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">upsampling_ip_cuda</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="n">upsamplingFactor</span><span class="p">);</span>
+
+<span class="c">%% Plotting</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">inputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Input Image&quot;</span><span class="p">);</span><span class="w"> </span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">outputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Output Image&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="cuda-code">
+<h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm">    Aim: Implementing Image Upsampling using Custom Cuda kernels</span>
+<span class="cm">*/</span><span class="w"> </span>
+
+<span class="c1">// header files</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mex.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../Beamforming/booktools.h&quot;</span>
+
+<span class="c1">// global function</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">upsampling_ip_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                   </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// getting thread coordinates</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// getting linear index into the input</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidy</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidz</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// finding the destination coordinates</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidz</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// getting a linear index to the output</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidx_output</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidy_output</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidz_output</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// copying the values to the output</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_output</span><span class="o">&lt;</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">tidy_output</span><span class="o">&lt;</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D_Output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D_Input</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="p">}</span>
+
+<span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// checking number of inputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrhs</span><span class="o">!=</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Inputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// checking number of outputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Expected Outputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// checking input data type</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Data type of first argument is wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Data-type of second argument is wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// setting up inputs</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">inputImage</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">mxGetScalar</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">inputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// making output&#39;s dimension-array</span>
+<span class="w">    </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">outputDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="n">outputDimensions</span><span class="p">,</span><span class="w"> </span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">,</span><span class="w"> </span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">mwSize</span><span class="p">)</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">mwSize</span><span class="p">)</span><span class="n">samplingFactor</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Setting up output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">outputDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputImage</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// preparing for function call</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="mi">32</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="n">gridConfiguration</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="p">,</span>
+<span class="w">                           </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">y</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">y</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">]));</span>
+
+<span class="w">    </span><span class="c1">// calling function</span>
+<span class="w">    </span><span class="n">upsampling_ip_cuda</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">blockConfiguration</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                               </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                               </span><span class="n">outputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                               </span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                               </span><span class="n">outputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// fetching data from device global-memory to host memory</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// shutting down</span>
+<span class="w">    </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./Chapters/Sections"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../ImageProcessing.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Image Processing Examples</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Sreeganesh Valathara Rajendran
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
