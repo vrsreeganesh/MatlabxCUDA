@@ -1,1 +1,1 @@
-# Image Processing Examples
+# Image Processing
