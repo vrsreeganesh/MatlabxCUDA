@@ -1,11 +1,11 @@
-# Introduction to Constant Memory (not complete)
+# Introduction to Constant Memory
 
 ## Overview
 In this chapter, we introduce constant-memory and how to use it through a very simple example. *Constant Memory* is another class of memory that is available in most NVIDIA GPUs. Using constant-memory to store data that is highly fetched, won't be edited and not-too-large for cache results in highly improved performance due to the reduced data-fetch times from the SMs. This chapter presents how to use constant-memory generally and demonstrate how to use constant-memory through an example. 
 
 ## Background
 
-### Stencil Operation (complete but not polished)
+### Stencil Operation 
 A stencil operation is a computational technique used in multiple fields like image and signal processing. It involves applying a function or operation to a neighborhood of data points around a central point in a grid or an array. The output of this operation produces values at each point which is a function of  the elements in its neighborhood. 
 
 The following are the key-aspects of a stencil operation 
@@ -17,7 +17,7 @@ The following are the key-aspects of a stencil operation
     - **Scientific Computing**: Stencil operations are common in simulations, such as fluid dynamics, where they model the interaction between points in a grid.
 Stencil operations are highly parallelizable, making them well-suited for implementation on GPUs using CUDA.
 
-### Constant Memory (complete but  not polished)
+### Constant Memory 
 *Constant Memory* is another class of memory that is available in most NVIDIA GPUs. The constant memory is at the same distance from the SM as that of the Global Memory. Though constant memory is not at the same proximity as that of shared-memory, it is aggressively cached. This means that using constant memory to store data that will remain constant throughout the process in addition to being regularly used will produce gains in speed. Thus this kind of data that is stored in the constant memory is efficiently and effectively cached. This kind of aggressive caching allows for extreme streamlining and large gains in time due to the high hit rates in the cache. 
 
 Regarding access-privilege, the data in Constant Memory is only allowed to be set from the host-side and never from the device-side. That is, host side write access while device-side has read access. Due to these technical designs and characteristics, Constant Memory must be used to store those values that are 

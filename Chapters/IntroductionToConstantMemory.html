@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Introduction to Constant Memory (not complete) &#8212; An Introduction to MATLAB x CUDA</title>
+    <title>Introduction to Constant Memory &#8212; An Introduction to MATLAB x CUDA</title>
   
   
   
@@ -195,7 +195,7 @@
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="IntroductionToSharedMemory.html">Introduction to Shared Memory</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Introduction to Constant Memory (not complete)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Introduction to Constant Memory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="IntroductionToDynamicParallelism.html">Introduction To Dynamic Parallelism</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="ImageProcessing.html">Image Processing Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="Sections/ImageUpsampling.html">Upsampling</a></li>
@@ -405,7 +405,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Introduction to Constant Memory (not complete)</h1>
+    <h1>Introduction to Constant Memory</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -417,8 +417,8 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stencil-operation-complete-but-not-polished">Stencil Operation (complete but not polished)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant-memory-complete-but-not-polished">Constant Memory (complete but  not polished)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stencil-operation">Stencil Operation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant-memory">Constant Memory</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#using-constant-memory-complete-but-not-polished">Using Constant-Memory (complete but  not polished)</a></li>
 </ul>
 </li>
@@ -441,16 +441,16 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="introduction-to-constant-memory-not-complete">
-<h1>Introduction to Constant Memory (not complete)<a class="headerlink" href="#introduction-to-constant-memory-not-complete" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="introduction-to-constant-memory">
+<h1>Introduction to Constant Memory<a class="headerlink" href="#introduction-to-constant-memory" title="Link to this heading">#</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
 <p>In this chapter, we introduce constant-memory and how to use it through a very simple example. <em>Constant Memory</em> is another class of memory that is available in most NVIDIA GPUs. Using constant-memory to store data that is highly fetched, won’t be edited and not-too-large for cache results in highly improved performance due to the reduced data-fetch times from the SMs. This chapter presents how to use constant-memory generally and demonstrate how to use constant-memory through an example.</p>
 </section>
 <section id="background">
 <h2>Background<a class="headerlink" href="#background" title="Link to this heading">#</a></h2>
-<section id="stencil-operation-complete-but-not-polished">
-<h3>Stencil Operation (complete but not polished)<a class="headerlink" href="#stencil-operation-complete-but-not-polished" title="Link to this heading">#</a></h3>
+<section id="stencil-operation">
+<h3>Stencil Operation<a class="headerlink" href="#stencil-operation" title="Link to this heading">#</a></h3>
 <p>A stencil operation is a computational technique used in multiple fields like image and signal processing. It involves applying a function or operation to a neighborhood of data points around a central point in a grid or an array. The output of this operation produces values at each point which is a function of  the elements in its neighborhood.</p>
 <p>The following are the key-aspects of a stencil operation</p>
 <ul class="simple">
@@ -466,8 +466,8 @@ Stencil operations are highly parallelizable, making them well-suited for implem
 </li>
 </ul>
 </section>
-<section id="constant-memory-complete-but-not-polished">
-<h3>Constant Memory (complete but  not polished)<a class="headerlink" href="#constant-memory-complete-but-not-polished" title="Link to this heading">#</a></h3>
+<section id="constant-memory">
+<h3>Constant Memory<a class="headerlink" href="#constant-memory" title="Link to this heading">#</a></h3>
 <p><em>Constant Memory</em> is another class of memory that is available in most NVIDIA GPUs. The constant memory is at the same distance from the SM as that of the Global Memory. Though constant memory is not at the same proximity as that of shared-memory, it is aggressively cached. This means that using constant memory to store data that will remain constant throughout the process in addition to being regularly used will produce gains in speed. Thus this kind of data that is stored in the constant memory is efficiently and effectively cached. This kind of aggressive caching allows for extreme streamlining and large gains in time due to the high hit rates in the cache.</p>
 <p>Regarding access-privilege, the data in Constant Memory is only allowed to be set from the host-side and never from the device-side. That is, host side write access while device-side has read access. Due to these technical designs and characteristics, Constant Memory must be used to store those values that are</p>
 <ul class="simple">
@@ -814,8 +814,8 @@ Stencil operations are highly parallelizable, making them well-suited for implem
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stencil-operation-complete-but-not-polished">Stencil Operation (complete but not polished)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant-memory-complete-but-not-polished">Constant Memory (complete but  not polished)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#stencil-operation">Stencil Operation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#constant-memory">Constant Memory</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#using-constant-memory-complete-but-not-polished">Using Constant-Memory (complete but  not polished)</a></li>
 </ul>
 </li>
