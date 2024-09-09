@@ -10,6 +10,14 @@ The first is the gateway function. The gateway function in Mex is not-unlike the
 - nrhs: the number of inputs that were passed during this function call
 - *prhs[]: an array of containing pointers that point to the different data structures that are made available to this particular function. 
 
+The function is defined in the following manner
+```C
+// gateway function
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+	...
+}
+```
 
 
 

@@ -446,6 +446,14 @@ document.write(`
 <li><p>nrhs: the number of inputs that were passed during this function call</p></li>
 <li><p>*prhs[]: an array of containing pointers that point to the different data structures that are made available to this particular function.</p></li>
 </ul>
+<p>The function is defined in the following manner</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">	</span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 <section id="checking-number-of-inputs-and-outputs">
 <h2>Checking number of Inputs and Outputs<a class="headerlink" href="#checking-number-of-inputs-and-outputs" title="Link to this heading">#</a></h2>
