@@ -29,7 +29,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 ## Checking number of Inputs and Outputs
 
 
-Once this function is written, there are a number of checks that needs to be performed. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs
+Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we're expecting. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs
+
+<!-- 
+Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we're expecting. The checks primarily depend on the kind of code and logic that you're defining but the fundamental check
+- The number of inputs
+- Number of outputs (One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce) -->
 
 ```matlab
 // expects one output

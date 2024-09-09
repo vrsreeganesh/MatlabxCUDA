@@ -457,7 +457,11 @@ document.write(`
 </section>
 <section id="checking-number-of-inputs-and-outputs">
 <h2>Checking number of Inputs and Outputs<a class="headerlink" href="#checking-number-of-inputs-and-outputs" title="Link to this heading">#</a></h2>
-<p>Once this function is written, there are a number of checks that needs to be performed. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs</p>
+<p>Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we’re expecting. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs</p>
+<!-- 
+Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we're expecting. The checks primarily depend on the kind of code and logic that you're defining but the fundamental check
+- The number of inputs
+- Number of outputs (One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce) -->
 <div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="o">//</span><span class="w"> </span><span class="n">expects</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="n">output</span>
 <span class="n">outputMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">firstFunction</span><span class="p">();</span>
 
