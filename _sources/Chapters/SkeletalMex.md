@@ -4,12 +4,12 @@ In this section, we introduce the mex-cuda structure that we will be following t
 
 ## Gateway Function
 The first is the gateway function. The gateway function in Mex is not-unlike the main function. It is the function that is called by matlab when we call a Mex code. It takes in mainly four arguments. 
-\begin{itemize}
-	\item nlhs: the number of outputs we expect the function to return
-	\item *plhs[]: an array of pointers that is expected to contain the pointers to the structures that we're returning. So if we're returning two arrays as results, then the first element will contain the pointer to the first array and the second element will contain the pointer to the second array. 
-	\item nrhs: the number of inputs that were passed during this function call
-	\item *prhs[]: an array of containing pointers that point to the different data structures that are made available to this particular function. 
-\end{itemize}
+
+- nlhs: the number of outputs we expect the function to return
+- *plhs[]: an array of pointers that is expected to contain the pointers to the structures that we're returning. So if we're returning two arrays as results, then the first element will contain the pointer to the first array and the second element will contain the pointer to the second array. 
+- nrhs: the number of inputs that were passed during this function call
+- *prhs[]: an array of containing pointers that point to the different data structures that are made available to this particular function. 
+
 
 
 
