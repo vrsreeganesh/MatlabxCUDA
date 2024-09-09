@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Signal Downsampling &#8212; An Introduction to MATLAB x CUDA</title>
+    <title>Signal Upsampling &#8212; An Introduction to MATLAB x CUDA</title>
   
   
   
@@ -57,11 +57,11 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/DSP_Downsampling';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/DSP_Upsampling';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Signal Upsampling" href="DSP_Upsampling.html" />
-    <link rel="prev" title="Standard Convolution" href="DSP_Convolution.html" />
+    <link rel="next" title="Decimation" href="DSP_Decimation.html" />
+    <link rel="prev" title="Signal Downsampling" href="DSP_Downsampling.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -206,8 +206,8 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../DigitalSignalProcessing.html">Digital Signal Processing</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="DSP_Convolution.html">Standard Convolution</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Signal Downsampling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="DSP_Upsampling.html">Signal Upsampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DSP_Downsampling.html">Signal Downsampling</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Signal Upsampling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="DSP_Decimation.html">Decimation</a></li>
 </ul>
 </details></li>
@@ -282,7 +282,7 @@
       
       
       
-      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/Sections/DSP_Downsampling.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/Sections/DSP_Upsampling.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -312,7 +312,7 @@
       
       
       
-      <li><a href="../../_sources/Chapters/Sections/DSP_Downsampling.md" target="_blank"
+      <li><a href="../../_sources/Chapters/Sections/DSP_Upsampling.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -396,7 +396,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Signal Downsampling</h1>
+    <h1>Signal Upsampling</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -419,40 +419,43 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="signal-downsampling">
-<h1>Signal Downsampling<a class="headerlink" href="#signal-downsampling" title="Link to this heading">#</a></h1>
-<p>Downsampling is a signal processing technique used to reduce the sampling rate of a signal by retaining only a subset of the original samples. This process effectively reduces the data rate and the size of the dataset, making it more manageable for storage or further processing. The primary goal of downsampling is to capture the essential features of the signal while discarding redundant information. Mathematically, if ( x[n] ) represents the original signal, the downsampled signal ( y[m] ) can be obtained by taking every ( M )-th sample of ( x[n] ):</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="signal-upsampling">
+<h1>Signal Upsampling<a class="headerlink" href="#signal-upsampling" title="Link to this heading">#</a></h1>
+<p>Upsampling is a signal processing technique used to increase the sampling rate of a discrete signal by inserting additional samples between the original ones. This process effectively increases the data rate and prepares the signal for further processing or analysis at a higher resolution. The primary goal of upsampling is to enhance the signal’s temporal or spatial resolution. Mathematically, if ( x[n] ) represents the original signal, the upsampled signal ( y[m] ) can be obtained by inserting ( L-1 ) zeros between each sample of ( x[n] ):</p>
 <p>\begin{align*}
-y[m] &amp;= x[mM]
+y[m] =
+\begin{cases}
+x[m/L] &amp; \text{if } m = kL \text{ for some integer } k \
+0 &amp; \text{otherwise}
+\end{cases}
 \end{align*}</p>
-<p>where ( M ) is the downsampling factor. This operation reduces the sampling rate by a factor of ( M ), resulting in a new signal that is ( 1/M ) the length of the original signal. For instance, if ( x[n] ) is sampled at 10 kHz and ( M = 2 ), the downsampled signal ( y[m] ) will have a sampling rate of 5 kHz.</p>
-<p>Downsampling is commonly used in various applications such as digital image processing, audio signal processing, and data compression. In image processing, downsampling can be used to reduce the resolution of an image, making it easier to analyze or transmit. For example, an image captured at a resolution of 4000x3000 pixels can be downsampled to 2000x1500 pixels, reducing the amount of data while preserving the overall structure of the image. In audio processing, downsampling is used to decrease the file size of audio recordings, making them more suitable for storage or streaming. For instance, an audio file sampled at 44.1 kHz can be downsampled to 22.05 kHz, which reduces the file size by half while still retaining sufficient quality for many applications. Proper filtering is usually required before downsampling to prevent aliasing, which ensures that the downsampled signal accurately represents the original signal without introducing distortions.</p>
+<p>where ( L ) is the upsampling factor. This operation increases the sampling rate by a factor of ( L ), resulting in a new signal that has ( L ) times the length of the original signal. For instance, if ( x[n] ) is sampled at 10 kHz and ( L = 2 ), the upsampled signal ( y[m] ) will have a sampling rate of 20 kHz.</p>
+<p>Upsampling is commonly used in various applications such as digital communication, image processing, and audio signal processing. In digital communication, upsampling is used to match the sampling rate of a signal to the requirements of the transmission medium or the receiver. For example, a signal sampled at a lower rate might be upsampled to a higher rate to meet the specifications of a digital-to-analog converter (DAC). In image processing, upsampling can be used to increase the resolution of an image, making it suitable for high-resolution displays or further analysis. For instance, an image with a resolution of 1000x1000 pixels can be upsampled to 2000x2000 pixels, providing a finer grid for more detailed visualization. In audio processing, upsampling is used to improve the quality of audio playback by increasing the sampling rate, allowing for a smoother and more accurate representation of the sound. Proper filtering, such as using a low-pass filter, is usually required after upsampling to remove the spectral replicas introduced by the zero-insertion process and to ensure that the upsampled signal accurately represents the original signal.</p>
 <section id="matlab-code">
 <h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
-<p>Here, we first compile the mexcuda code. Note that we don’t need any special libraries because the kernel we’re using is a custom one. This code compiles the code, then prepare the argument and then calls the function.</p>
 <div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">Aim:</span>
-<span class="cm">    Demonstrating CUDA implementation of down-sampling. </span>
+<span class="cm">    Demonstrating CUDA implementation of upsampling. </span>
 <span class="cm">%}</span>
 
 <span class="c">%% Basic setup</span>
 <span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span><span class="w"> </span><span class="n">close</span><span class="w"> </span><span class="s">all</span><span class="p">;</span>
 
 <span class="c">%% Compiling input code</span>
-<span class="n">mexcuda</span><span class="w"> </span><span class="s">downsample_cuda.cu</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">upsample_cuda.cu</span><span class="p">;</span>
 
 <span class="c">%% preparing inputs</span>
-<span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">pi</span><span class="o">*</span><span class="mf">1e2</span><span class="o">*</span><span class="nb">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2048</span><span class="p">));</span>
+<span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="mi">100</span><span class="p">;</span>
 <span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">inputArray</span><span class="p">(:);</span>
-<span class="n">samplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
+<span class="n">samplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">7</span><span class="p">;</span>
 
 <span class="c">%% Calling the functions</span>
-<span class="n">outputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">downsample_cuda</span><span class="p">(</span><span class="n">inputArray</span><span class="p">,</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">);</span>
+<span class="n">outputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">upsample_cuda</span><span class="p">(</span><span class="n">inputArray</span><span class="p">,</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">);</span>
 
 <span class="c">%% displaying the results</span>
 <span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">inputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Input Array&quot;</span><span class="p">);</span>
-<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">outputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Output Array&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">inputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Input Array&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">outputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Output Array&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
 </section>
@@ -461,7 +464,7 @@ y[m] &amp;= x[mM]
 <p>Here, we see the downsampling implementation of CUDA. Since this is not a collaborative task, we can implement this without the use of any specialised memory. As usual, our cuda code first does the dimensionality check, data-type check, get dimensions, pointers to the data, send the data to the device, call the function, copy the results back and shut down.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm">Aim:</span>
-<span class="cm">    Building custom-kernel to down-sample code. </span>
+<span class="cm">    Building custom-kernel to up-sample code. </span>
 <span class="cm">*/</span><span class="w"> </span>
 
 <span class="c1">// header-files</span>
@@ -469,7 +472,7 @@ y[m] &amp;= x[mM]
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../Beamforming/booktools.h&quot;</span>
 
 <span class="c1">// global kernel</span>
-<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">downsample_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">upsample_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
 <span class="w">                                </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
 <span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
 <span class="w">                                </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">)</span>
@@ -482,14 +485,11 @@ y[m] &amp;= x[mM]
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">responsibleIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
 
-<span class="w">    </span><span class="cm">/*</span>
-<span class="cm">    If the index from which we&#39;re fetching values are within</span>
-<span class="cm">    the length of the array, then we copy it</span>
-<span class="cm">    */</span><span class="w"> </span>
-<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">responsibleIndex</span><span class="o">&lt;</span><span class="n">inputLength</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">// checking if tidx maps to a valid index of the input array</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx</span><span class="o">&lt;</span><span class="n">inputLength</span><span class="p">)</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// copying the values</span>
-<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">tidx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">responsibleIndex</span><span class="p">];</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">responsibleIndex</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">tidx</span><span class="p">];</span>
 <span class="w">    </span><span class="p">}</span>
 
 <span class="w">    </span><span class="c1">// making sure everything is done </span>
@@ -521,41 +521,38 @@ y[m] &amp;= x[mM]
 <span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The second input is expected to be a scalar </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 <span class="w">    </span><span class="p">}</span>
 
-<span class="w">    </span><span class="c1">// Fetching Inputs </span>
+<span class="w">    </span><span class="c1">// Fetching Inputs</span>
 <span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="n">inputArray</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">mxGetScalar</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
 
-<span class="w">    </span><span class="c1">// Transferring Assets to the Device</span>
+<span class="w">    </span><span class="c1">// Sending Data to GPU</span>
 <span class="w">    </span><span class="n">inputArray</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
 
 <span class="w">    </span><span class="c1">// fetching the pointer to the input data</span>
 <span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">inputPointerA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">mxGetPr</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
 <span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">inputPointerB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">mxGetPr</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
-<span class="w">    </span>
+
 <span class="w">    </span><span class="c1">// setting up output</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputArray</span><span class="p">.</span><span class="n">numElements</span><span class="p">);</span><span class="w"> </span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">outputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)((</span><span class="n">inputLength</span><span class="o">+</span><span class="n">samplingFactor</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">samplingFactor</span><span class="p">);</span>
-<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericMatrix</span><span class="p">(</span><span class="n">outputLength</span><span class="p">,</span>
-<span class="w">                                    </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span>
-<span class="w">                                    </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span>
-<span class="w">                                    </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">outputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">inputLength</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">);</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericMatrix</span><span class="p">(</span><span class="n">outputLength</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span><span class="n">mxREAL</span><span class="p">);</span>
 <span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputArray</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
 <span class="w">    </span><span class="n">outputArray</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
 
-<span class="w">    </span><span class="c1">// preparing for function call </span>
+<span class="w">    </span><span class="c1">// function call</span>
 <span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">numblocks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)((</span><span class="n">outputLength</span><span class="o">+</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">numblocks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)((</span><span class="n">inputLength</span><span class="o">+</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
 <span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridConfiguration</span><span class="p">(</span><span class="n">numblocks</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
-<span class="w">    </span><span class="n">downsample_cuda</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span><span class="w"> </span>
-<span class="w">                        </span><span class="n">blockConfiguration</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">    </span><span class="n">upsample_cuda</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">blockConfiguration</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
 <span class="w">                                            </span><span class="n">samplingFactor</span><span class="p">,</span>
 <span class="w">                                            </span><span class="n">outputArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
 <span class="w">                                            </span><span class="n">inputArray</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">);</span>
 
-<span class="w">    </span><span class="c1">// Copying data from Device to Host</span>
+<span class="w">    </span><span class="c1">// Copying results from device to host</span>
 <span class="w">    </span><span class="n">outputArray</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
 
-<span class="w">    </span><span class="c1">// Shutting Down</span>
+<span class="w">    </span><span class="c1">// Shutting down</span>
 <span class="w">    </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
 <span class="w">    </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
 <span class="p">}</span>
@@ -595,20 +592,20 @@ y[m] &amp;= x[mM]
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="DSP_Convolution.html"
+       href="DSP_Downsampling.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Standard Convolution</p>
+        <p class="prev-next-title">Signal Downsampling</p>
       </div>
     </a>
     <a class="right-next"
-       href="DSP_Upsampling.html"
+       href="DSP_Decimation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Signal Upsampling</p>
+        <p class="prev-next-title">Decimation</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
