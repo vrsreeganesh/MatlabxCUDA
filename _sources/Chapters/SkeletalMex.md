@@ -105,11 +105,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 ## Obtaining Input Dimensions
+<!-- 
+Once we make sure that we've received the right number of inputs, checked the outputs and then tested for the right data-type, we shall now find the way to obtain the dimensions of the input data. The following shows a simple way of obtaining the dimensions of the incoming array/matrix.  -->
 
-Once we make sure that we've received the right number of inputs, checked the outputs and then tested for the right data-type, we shall now find the way to obtain the dimensions of the input data. The following shows a simple way of obtaining the dimensions of the incoming array/matrix. 
-
-There are a number of functions used to get the dimensions of the input architectures. Some of them are
-
+After the number-check and datatype-check, we obtain the dimensions of the input-data. There are a number of functions used to get the dimensions of the input architectures. Some of them are
 
 - mxGetDimensions(): returns array containing the dimensions of the inputs. 
 - mxGetNumberOfElements(): returns the number of elements in the input data-structure (an array or a matrix);
