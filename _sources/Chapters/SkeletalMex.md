@@ -52,7 +52,7 @@ outputMatrix = firstFunction();
 <!-- 
 Since nlhs and nrhs are integers, regular C checking should work. We then use a function present in Mex API that allows us to signal to MATLAB that an error has occurred. There are a number of ways to signal to MATLAB that an error has occurred but we choose the simplest. THere are more sophisticated methods to signal to MATLAB about this but we choose to go with the most simple functions, mxErrMsgTxt.  -->
 
-Since \textit{nlhs} and \textit{nrhs} are integers, we check using regular \textit{if} conditions. If the check fails, we use a Mex-API function to signal to MATLAB that an error has occured. Mex-API allows multiple ways to communicate this but here, we present the simplest, \textit{mxErrMsgTxt}. This function indicates to MATLAB that an error has occured and it must display the string argument provided to the function. 
+Since *nlhs* and *nrhs* are integers, we check using regular *if* conditions. If the check fails, we use a Mex-API function to signal to MATLAB that an error has occured. Mex-API allows multiple ways to communicate this but here, we present the simplest, *mxErrMsgTxt*. This function indicates to MATLAB that an error has occured and it must display the string argument provided to the function. 
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
