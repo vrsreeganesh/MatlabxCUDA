@@ -139,7 +139,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 ## Obtaining Pointers to Input Arguments
 
-Now, we obtain the pointers to the input data-structures. The data structures: arrays or matrices are stored in the row-major format adhering to the conventions of C. So we access the input data-structures using a pointer. Using the pointer and the dimension information, we obtain the data values accordingly. There are a number of ways to obtain the pointers to the input data-structures. For now, we stick to the basic way of doing this, using, mxGetPr(). 
+<!-- Now, we obtain the pointers to the input data-structures. The data structures: arrays or matrices are stored in the row-major format adhering to the conventions of C. So we access the input data-structures using a pointer. Using the pointer and the dimension information, we obtain the data values accordingly. There are a number of ways to obtain the pointers to the input data-structures. For now, we stick to the basic way of doing this, using, mxGetPr().  -->
+
+Next, we obtain the pointers to the input-data. Matrices are stored in the row-major format, adhering to the conventions of C. This means that a pointer is sufficient to access the contents of an input-matrix. Using this pointer and the information we're privy regarding the dimensions of the input-matrix, we process these inputs. As usual, there area  number of ways to obtain pointers to the input-structure but the most simple way is to use, *mxGetpr()*. Following snippet shows how to use it.
+
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
