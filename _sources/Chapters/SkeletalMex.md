@@ -172,13 +172,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 ## Setting Up Output Structure
-Once we've created whatever data-structure we have in mind, we create an output. To create a matrix output, there are a number of ways to create this
-
-\begin{itemize}
-	\item mxCreateNumericMatrix()
-\end{itemize}
-
-The following shows a simple example of assigning an output to the plhs
+To send the results back to Matlab, we need to allocate the data-structure associated with Matlab matrices and populate it. However, the class is opaque. So to use it, Mex-API provides us a number of functions. Here, we show the function used to create a Matlab-matrix. Note that this is not the only way of doing this. There are a number of different functions that give us similar functionality but we start slow. The following shows a simple example of creating a Matlab-matrix using, *mxCreateNumericMatrix()*. And the created output is *tied*  to pointer of output-pointers in the following manner. 
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

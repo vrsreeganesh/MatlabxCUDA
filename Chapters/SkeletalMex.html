@@ -585,11 +585,7 @@ Once we make sure that we've received the right number of inputs, checked the ou
 </section>
 <section id="setting-up-output-structure">
 <h2>Setting Up Output Structure<a class="headerlink" href="#setting-up-output-structure" title="Link to this heading">#</a></h2>
-<p>Once we’ve created whatever data-structure we have in mind, we create an output. To create a matrix output, there are a number of ways to create this</p>
-<p>\begin{itemize}
-\item mxCreateNumericMatrix()
-\end{itemize}</p>
-<p>The following shows a simple example of assigning an output to the plhs</p>
+<p>To send the results back to Matlab, we need to allocate the data-structure associated with Matlab matrices and populate it. However, the class is opaque. So to use it, Mex-API provides us a number of functions. Here, we show the function used to create a Matlab-matrix. Note that this is not the only way of doing this. There are a number of different functions that give us similar functionality but we start slow. The following shows a simple example of creating a Matlab-matrix using, <em>mxCreateNumericMatrix()</em>. And the created output is <em>tied</em>  to pointer of output-pointers in the following manner.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
 <span class="p">{</span>
 <span class="w">	</span><span class="c1">// check the number of inputs</span>
