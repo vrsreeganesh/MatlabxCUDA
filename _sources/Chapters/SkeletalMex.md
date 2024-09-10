@@ -201,7 +201,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 ## Obtaining Pointer to Output
-Once we've setup the output data structure at plhs, we need to now obtain a pointer to it so that we can start copying the data to the structure. We obtain the pointers in a similar manner to how we obtained the pointer to the input arguments. Note that once the pointer to the output has been obtained, we use this pointer to store the results to. And once the mex-function ends, the data that was copied to this pointer is available at MATLAB as the data-structure that was returned. 
+<!-- Once we've setup the output data structure at plhs, we need to now obtain a pointer to it so that we can start copying the data to the structure. We obtain the pointers in a similar manner to how we obtained the pointer to the input arguments. Note that once the pointer to the output has been obtained, we use this pointer to store the results to. And once the mex-function ends, the data that was copied to this pointer is available at MATLAB as the data-structure that was returned.  -->
+
+To populate the Matlab-matrix, we first need to obtain a pointer to  it. This is obtained in the same way as that of obtaining pointers to the inputs. The results are then stored to the memory pointed to by this pointer. And once the mex-function ends, the data stored to the memory pointed to by this pointer is available to the Matlab-code, as the matrix that is returned. 
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
