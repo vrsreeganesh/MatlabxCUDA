@@ -31,6 +31,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we're expecting. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs
 
+Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are valid and expected. The first set of checks is to ensure the number of inputs and expected outputs. (One point of confusion might be how does one check the number of outputs, ahead of time. nrhs refers to the number of outputs expected by the matlab code). The following code segment shows what we mean by the number of outputs expected by matlab. This is automatically populated and passed to the mex gateway function. 
+
 <!-- 
 Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we're expecting. The checks primarily depend on the kind of code and logic that you're defining but the fundamental check
 - The number of inputs
@@ -47,8 +49,10 @@ outputMatrix = firstFunction();
 [outputMatrixA, outputMatrixB, outputMatrixC] = thirdFunction();
 ```
 
+<!-- 
+Since nlhs and nrhs are integers, regular C checking should work. We then use a function present in Mex API that allows us to signal to MATLAB that an error has occurred. There are a number of ways to signal to MATLAB that an error has occurred but we choose the simplest. THere are more sophisticated methods to signal to MATLAB about this but we choose to go with the most simple functions, mxErrMsgTxt.  -->
 
-Since nlhs and nrhs are integers, regular C checking should work. We then use a function present in Mex API that allows us to signal to MATLAB that an error has occurred. There are a number of ways to signal to MATLAB that an error has occurred but we choose the simplest. THere are more sophisticated methods to signal to MATLAB about this but we choose to go with the most simple functions, mxErrMsgTxt. 
+Since \textit{nlhs} and \textit{nrhs} are integers, we check using regular \textit{if} conditions. If the check fails, we use a Mex-API function to signal to MATLAB that an error has occured. Mex-API allows multiple ways to communicate this but here, we present the simplest, \textit{mxErrMsgTxt}. This function indicates to MATLAB that an error has occured and it must display the string argument provided to the function. 
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
