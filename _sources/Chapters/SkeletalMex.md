@@ -80,12 +80,10 @@ Next, we check the data-type of the inputs. Mex-API provides a number of functio
 - mxIsDouble()
 - mxIsComplex()
 - mxGetNumberOfElements()
-- list five more
+<!-- - list five more -->
 
 
-Based on the data-structures you're working with, you'll have to mix and match these functions to make sure that the argument meets the conditions of the data-structure that we're expecting. The following shows some basic tests. 
-
-The following shows the basic way of testing whether an incoming data-structure is a double variable, array or matrix. Note that we assume it is the first input argument. The first datatype-based check basically checks if the data is of type double and not complex. 
+Based on the data-structures you're working with, you'll have to mix and match these functions to make sure that the argument meets the conditions of the data-structure that we're expecting. The following shows the basic way of testing whether an incoming data-structure is a double variable, array or matrix. Note that we assume it is the first input argument. The first datatype-check ensures the data is of type, double, and not complex (is real). 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

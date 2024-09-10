@@ -501,10 +501,9 @@ Since nlhs and nrhs are integers, regular C checking should work. We then use a 
 <li><p>mxIsDouble()</p></li>
 <li><p>mxIsComplex()</p></li>
 <li><p>mxGetNumberOfElements()</p></li>
-<li><p>list five more</p></li>
 </ul>
-<p>Based on the data-structures you’re working with, you’ll have to mix and match these functions to make sure that the argument meets the conditions of the data-structure that we’re expecting. The following shows some basic tests.</p>
-<p>The following shows the basic way of testing whether an incoming data-structure is a double variable, array or matrix. Note that we assume it is the first input argument. The first datatype-based check basically checks if the data is of type double and not complex.</p>
+<!-- - list five more -->
+<p>Based on the data-structures you’re working with, you’ll have to mix and match these functions to make sure that the argument meets the conditions of the data-structure that we’re expecting. The following shows the basic way of testing whether an incoming data-structure is a double variable, array or matrix. Note that we assume it is the first input argument. The first datatype-check ensures the data is of type, double, and not complex (is real).</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
 <span class="p">{</span>
 <span class="w">	</span><span class="c1">// checking number of inputs</span>
