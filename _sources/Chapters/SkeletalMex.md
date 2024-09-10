@@ -74,9 +74,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 ## Checking the Data-types of Inputs
 
-Once the number of inputs and outputs are checked, we check the data-type of the inputs. This is again done with the help of a set of functions provided by the Mex-API. There are a number of functions that help with this. To following list gives the basic set. 
+<!-- Once the number of inputs and outputs are checked, we check the data-type of the inputs. This is again done with the help of a set of functions provided by the Mex-API. There are a number of functions that help with this. To following list gives the basic set.  -->
 
-
+Next, we check the data-type of the inputs. Mex-API provides a number of functions to do the same. Some examples are
 - mxIsDouble()
 - mxIsComplex()
 - mxGetNumberOfElements()
