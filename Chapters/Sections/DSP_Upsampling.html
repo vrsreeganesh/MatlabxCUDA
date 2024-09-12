@@ -57,6 +57,8 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/DSP_Upsampling';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -433,14 +435,21 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="signal-upsampling">
 <h1>Signal Upsampling<a class="headerlink" href="#signal-upsampling" title="Link to this heading">#</a></h1>
-<p>Upsampling is a signal processing technique used to increase the sampling rate of a discrete signal by inserting additional samples between the original ones. This process effectively increases the data rate and prepares the signal for further processing or analysis at a higher resolution. The primary goal of upsampling is to enhance the signal’s temporal or spatial resolution. Mathematically, if ( x[n] ) represents the original signal, the upsampled signal ( y[m] ) can be obtained by inserting ( L-1 ) zeros between each sample of ( x[n] ):</p>
-<p>\begin{align*}
-y[m] =
-\begin{cases}
-x[m/L] &amp; \text{if } m = kL \text{ for some integer } k \
+<p>Upsampling is a signal processing technique used to increase the sampling rate of a discrete signal by inserting additional samples between the original ones. This process effectively increases the data rate and prepares the signal for further processing or analysis at a higher resolution. The primary goal of upsampling is to enhance the signal’s temporal or spatial resolution. Mathematically, if <span class="math notranslate nohighlight">\(x[n]\)</span> represents the original signal, the upsampled signal <span class="math notranslate nohighlight">\(y[m]\)</span> can be obtained by inserting <span class="math notranslate nohighlight">\( L-1\)</span> zeros between each sample of <span class="math notranslate nohighlight">\(x[n]\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+y[m] = 
+\begin{cases} 
+x[m/L] &amp; \text{if } m = kL \text{ for some integer } k \\
 0 &amp; \text{otherwise}
 \end{cases}
-\end{align*}</p>
+\end{split}\]</div>
+<!-- $$
+\mathrm{CE}(p, y) = \begin{cases}
+    -\log(p) & \text{if } y = 1 \\ % & is your "\tab"-like command (it's a tab alignment character)
+    -\log(1-p) & \text{otherwise.}
+\end{cases}
+$$ -->
 <p>where ( L ) is the upsampling factor. This operation increases the sampling rate by a factor of ( L ), resulting in a new signal that has ( L ) times the length of the original signal. For instance, if ( x[n] ) is sampled at 10 kHz and ( L = 2 ), the upsampled signal ( y[m] ) will have a sampling rate of 20 kHz.</p>
 <p>Upsampling is commonly used in various applications such as digital communication, image processing, and audio signal processing. In digital communication, upsampling is used to match the sampling rate of a signal to the requirements of the transmission medium or the receiver. For example, a signal sampled at a lower rate might be upsampled to a higher rate to meet the specifications of a digital-to-analog converter (DAC). In image processing, upsampling can be used to increase the resolution of an image, making it suitable for high-resolution displays or further analysis. For instance, an image with a resolution of 1000x1000 pixels can be upsampled to 2000x2000 pixels, providing a finer grid for more detailed visualization. In audio processing, upsampling is used to improve the quality of audio playback by increasing the sampling rate, allowing for a smoother and more accurate representation of the sound. Proper filtering, such as using a low-pass filter, is usually required after upsampling to remove the spectral replicas introduced by the zero-insertion process and to ensure that the upsampled signal accurately represents the original signal.</p>
 <section id="matlab-code">

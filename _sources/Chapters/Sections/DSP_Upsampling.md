@@ -1,14 +1,22 @@
 # Signal Upsampling
 
-Upsampling is a signal processing technique used to increase the sampling rate of a discrete signal by inserting additional samples between the original ones. This process effectively increases the data rate and prepares the signal for further processing or analysis at a higher resolution. The primary goal of upsampling is to enhance the signal's temporal or spatial resolution. Mathematically, if \( x[n] \) represents the original signal, the upsampled signal \( y[m] \) can be obtained by inserting \( L-1 \) zeros between each sample of \( x[n] \):
+Upsampling is a signal processing technique used to increase the sampling rate of a discrete signal by inserting additional samples between the original ones. This process effectively increases the data rate and prepares the signal for further processing or analysis at a higher resolution. The primary goal of upsampling is to enhance the signal's temporal or spatial resolution. Mathematically, if $x[n]$ represents the original signal, the upsampled signal $y[m]$ can be obtained by inserting $ L-1$ zeros between each sample of $x[n]$:
 
-\begin{align*}
+$$
 y[m] = 
 \begin{cases} 
 x[m/L] & \text{if } m = kL \text{ for some integer } k \\
 0 & \text{otherwise}
 \end{cases}
-\end{align*}
+$$
+
+<!-- $$
+\mathrm{CE}(p, y) = \begin{cases}
+    -\log(p) & \text{if } y = 1 \\ % & is your "\tab"-like command (it's a tab alignment character)
+    -\log(1-p) & \text{otherwise.}
+\end{cases}
+$$ -->
+
 
 where \( L \) is the upsampling factor. This operation increases the sampling rate by a factor of \( L \), resulting in a new signal that has \( L \) times the length of the original signal. For instance, if \( x[n] \) is sampled at 10 kHz and \( L = 2 \), the upsampled signal \( y[m] \) will have a sampling rate of 20 kHz.
 
