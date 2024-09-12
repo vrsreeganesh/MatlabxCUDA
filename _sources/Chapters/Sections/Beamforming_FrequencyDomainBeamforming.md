@@ -1,7 +1,6 @@
 # Frequency Domain Beamforming
 
-## [Beamforming](https://en.wikipedia.org/wiki/Beamforming)
-
+## [Theory](https://en.wikipedia.org/wiki/Discrete-time_beamforming#Frequency-domain_beamforming)
 
 
 ## MATLAB Code
