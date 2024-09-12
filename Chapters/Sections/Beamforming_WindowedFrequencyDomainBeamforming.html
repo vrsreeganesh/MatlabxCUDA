@@ -433,7 +433,7 @@ document.write(`
 <h1>Frequency Domain Beamforming with Sensor-Weighing<a class="headerlink" href="#frequency-domain-beamforming-with-sensor-weighing" title="Link to this heading">#</a></h1>
 <p>Traditional beamforming (ie, rectangular windowing) brings along with it significant disadvantages. The first-order, second-order and third-order sidelobes are respectively only 13.5, 18 and 21 dB below the peak level of the main lobe. Strong signals will be detected through the sidelobes of adjacent beams as well as, correctly, in the main lobe of the beam at the bearing of the signal. The resultant bearing ambiguity and additional, false, signals complicate all further
 processes [1].</p>
-<p>The aim, therefore, should be to produce the narrowest possible main lobe consistent with some reasonable level of sidelobes. One such method is chebyshev window. Here, we multiply the amplitude of each element’s output with shading coefficients obtained from the chebwin function in matlab.</p>
+<p>The aim, therefore, should be to produce the narrowest possible main lobe consistent with some reasonable level of sidelobes. One such method is <a class="reference external" href="https://en.wikipedia.org/wiki/Window_function">chebyshev window</a>. Here, we multiply the amplitude of each element’s output with shading coefficients obtained from the chebwin function in matlab.</p>
 <section id="matlab-code">
 <h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
 <div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>

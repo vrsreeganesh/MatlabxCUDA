@@ -145,3 +145,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     cudaDeviceReset();
 }
 ```
+
+
+
+## References
+- "Upsampling." Wikipedia, The Free Encyclopedia, 11 Sept. 2024, en.wikipedia.org/wiki/Upsampling. Accessed 12 Sept. 2024.

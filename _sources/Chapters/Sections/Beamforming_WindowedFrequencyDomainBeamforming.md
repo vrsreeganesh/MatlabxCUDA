@@ -4,7 +4,7 @@ Traditional beamforming (ie, rectangular windowing) brings along with it signifi
 processes [1].
 
 
-The aim, therefore, should be to produce the narrowest possible main lobe consistent with some reasonable level of sidelobes. One such method is chebyshev window. Here, we multiply the amplitude of each element’s output with shading coefficients obtained from the chebwin function in matlab.
+The aim, therefore, should be to produce the narrowest possible main lobe consistent with some reasonable level of sidelobes. One such method is [chebyshev window](https://en.wikipedia.org/wiki/Window_function). Here, we multiply the amplitude of each element’s output with shading coefficients obtained from the chebwin function in matlab.
 
 
 ## Matlab Code

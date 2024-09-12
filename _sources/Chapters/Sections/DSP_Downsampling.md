@@ -1,12 +1,12 @@
 # Signal Downsampling
 
-Downsampling is a signal processing technique used to reduce the sampling rate of a signal by retaining only a subset of the original samples. This process effectively reduces the data rate and the size of the dataset, making it more manageable for storage or further processing. The primary goal of downsampling is to capture the essential features of the signal while discarding redundant information. Mathematically, if \( x[n] \) represents the original signal, the downsampled signal \( y[m] \) can be obtained by taking every \( M \)-th sample of \( x[n] \):
+Downsampling is a signal processing technique used to reduce the sampling rate of a signal by retaining only a subset of the original samples. This process effectively reduces the data rate and the size of the dataset, making it more manageable for storage or further processing. The primary goal of downsampling is to capture the essential features of the signal while discarding redundant information. Mathematically, if $$x[n]$$ represents the original signal, the downsampled signal $$y[m]$$ can be obtained by taking every $$M$$-th sample of $$x[n]$$:
 
-\begin{align*}
-	y[m] &= x[mM]
-\end{align*}
+$$
+y[m] &= x[mM]
+$$
 
-where \( M \) is the downsampling factor. This operation reduces the sampling rate by a factor of \( M \), resulting in a new signal that is \( 1/M \) the length of the original signal. For instance, if \( x[n] \) is sampled at 10 kHz and \( M = 2 \), the downsampled signal \( y[m] \) will have a sampling rate of 5 kHz.
+where $$M$$ is the downsampling factor. This operation reduces the sampling rate by a factor of $$M$$, resulting in a new signal that is $$1/M$$ the length of the original signal. For instance, if $$x[n]$$ is sampled at 10 kHz and $$M = 2$$, the downsampled signal $$y[m]$$ will have a sampling rate of 5 kHz.
 
 Downsampling is commonly used in various applications such as digital image processing, audio signal processing, and data compression. In image processing, downsampling can be used to reduce the resolution of an image, making it easier to analyze or transmit. For example, an image captured at a resolution of 4000x3000 pixels can be downsampled to 2000x1500 pixels, reducing the amount of data while preserving the overall structure of the image. In audio processing, downsampling is used to decrease the file size of audio recordings, making them more suitable for storage or streaming. For instance, an audio file sampled at 44.1 kHz can be downsampled to 22.05 kHz, which reduces the file size by half while still retaining sufficient quality for many applications. Proper filtering is usually required before downsampling to prevent aliasing, which ensures that the downsampled signal accurately represents the original signal without introducing distortions.
 
@@ -148,3 +148,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     cudaDeviceReset();
 }
 ```
+
+## References
+- "Downsampling (Signal Processing)." Wikipedia, The Free Encyclopedia, 12 Sept. 2024, en.wikipedia.org/wiki/Downsampling_(signal_processing). Accessed 12 Sept. 2024.
