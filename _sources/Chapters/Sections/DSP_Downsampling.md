@@ -16,10 +16,7 @@ Downsampling is commonly used in various applications such as digital image proc
 Here, we first compile the mexcuda code. Note that we don't need any special libraries because the kernel we're using is a custom one. This code compiles the code, then prepare the argument and then calls the function. 
 
 ```matlab
-%{
-Aim:
-    Demonstrating CUDA implementation of down-sampling. 
-%}
+%% Aim:Demonstrating CUDA implementation of down-sampling. 
 
 %% Basic setup
 clc; clear; close all;
@@ -47,10 +44,7 @@ Here, we see the downsampling implementation of CUDA. Since this is not a collab
 
 
 ```C
-/*
-Aim:
-    Building custom-kernel to down-sample code. 
-*/ 
+// Aim: Building custom-kernel to down-sample code. 
 
 // header-files
 #include "mex.h"

@@ -223,6 +223,7 @@
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../ComputationalImaging.html">Computational Imaging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Miscellaneous.html">miscellaneous</a></li>
 </ul>
 
     </div>
@@ -444,10 +445,7 @@ y[m] = x[mM]
 <section id="matlab-code">
 <h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
 <p>Here, we first compile the mexcuda code. Note that we don’t need any special libraries because the kernel we’re using is a custom one. This code compiles the code, then prepare the argument and then calls the function.</p>
-<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
-<span class="cm">Aim:</span>
-<span class="cm">    Demonstrating CUDA implementation of down-sampling. </span>
-<span class="cm">%}</span>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Aim:Demonstrating CUDA implementation of down-sampling. </span>
 
 <span class="c">%% Basic setup</span>
 <span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span><span class="w"> </span><span class="n">close</span><span class="w"> </span><span class="s">all</span><span class="p">;</span>
@@ -473,10 +471,7 @@ y[m] = x[mM]
 <section id="cuda-code">
 <h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
 <p>Here, we see the downsampling implementation of CUDA. Since this is not a collaborative task, we can implement this without the use of any specialised memory. As usual, our cuda code first does the dimensionality check, data-type check, get dimensions, pointers to the data, send the data to the device, call the function, copy the results back and shut down.</p>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
-<span class="cm">Aim:</span>
-<span class="cm">    Building custom-kernel to down-sample code. </span>
-<span class="cm">*/</span><span class="w"> </span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// Aim: Building custom-kernel to down-sample code. </span>
 
 <span class="c1">// header-files</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mex.h&quot;</span>
