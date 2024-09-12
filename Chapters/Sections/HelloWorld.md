@@ -1,7 +1,13 @@
 ## Hello World
-Here, we present a very simple example that shows how to print from the mex-function. The mex-function takes no arguments, prints the statement and just return it. 
-A very introductory example, yes. MATLAB calls the function and it just prints a, ``Hello World''. 
 
+## Overview
+In this trivial example, we introduce the reader to printing a simple line from the mex-file. The general print function from mex-function is *mexPrintf*. That being said, regularly *fprintf* works just fine. We start with the simple $fprintf$. The call from Matlab to this function results in the code producing the result, "Hello World". 
+
+<!-- 
+============================================================
+============================================================
+============================================================
+ -->
 ### C Code
 ```C
 #include "mex.h"
@@ -13,26 +19,20 @@ void mexFunction(int nlhs, mxArray *plhs[],
 }
 ```
 
-
-
-
+<!-- 
+============================================================
+============================================================
+============================================================
+ -->
 ### MATLAB Code
 ```Matlab
-%{
-=================================================================================
-Aim: Printing hello world
-Notes:
-    Compile mex-file containing hello-world.
-    running hello-world
-=================================================================================
-%}
+%% Aim: Printing hello world
 
 %% Basic setup
 clc; clear; close all;
 
 %% Compiling
 mex HelloWorld.c
-fprintf("----------------------------- \n");
 
 %% Calling mex-function
 HelloWorld()

@@ -1,16 +1,23 @@
 # The Skeletal Structure
-
-There are a number of ways to interface Matlab with CUDA. We shall start with the most basic example and the more sophisticated approaches shall be presented later. 
+In this section, we introduce the mex-cuda structure that we will be following throughout the examples. Note that there are a number of ways to interface CUDA with Matlab using Mex. However, we start with the simple approaches and build up the more difficult methods as we go through. 
 
 
 ## Gateway Function
 The first is the gateway function. The gateway function in Mex is not-unlike the main function. It is the function that is called by matlab when we call a Mex code. It takes in mainly four arguments. 
-\begin{itemize}
-	\item nlhs: the number of outputs we expect the function to return
-	\item *plhs[]: an array of pointers that is expected to contain the pointers to the structures that we're returning. So if we're returning two arrays as results, then the first element will contain the pointer to the first array and the second element will contain the pointer to the second array. 
-	\item nrhs: the number of inputs that were passed during this function call
-	\item *prhs[]: an array of containing pointers that point to the different data structures that are made available to this particular function. 
-\end{itemize}
+
+- nlhs: the number of outputs we expect the function to return
+- *plhs[]: an array of pointers that is expected to contain the pointers to the structures that we're returning. So if we're returning two arrays as results, then the first element will contain the pointer to the first array and the second element will contain the pointer to the second array. 
+- nrhs: the number of inputs that were passed during this function call
+- *prhs[]: an array of containing pointers that point to the different data structures that are made available to this particular function. 
+
+The function is defined in the following manner
+```C
+// gateway function
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+	...
+}
+```
 
 
 
@@ -22,7 +29,14 @@ The first is the gateway function. The gateway function in Mex is not-unlike the
 ## Checking number of Inputs and Outputs
 
 
-Once this function is written, there are a number of checks that needs to be performed. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs
+Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we're expecting. The first set of checks is to ensure that the number of inputs and outputs are correct. CHecking both are rather straightforward. One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce. In the following segments, we show different examples of when matlab expects different number of outputs
+
+Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are valid and expected. The first set of checks is to ensure the number of inputs and expected outputs. (One point of confusion might be how does one check the number of outputs, ahead of time. nrhs refers to the number of outputs expected by the matlab code). The following code segment shows what we mean by the number of outputs expected by matlab. This is automatically populated and passed to the mex gateway function. 
+
+<!-- 
+Once the mex gateway function has been defined, the next step is to ensure that the arguments passed to it are the ones that we're expecting. The checks primarily depend on the kind of code and logic that you're defining but the fundamental check
+- The number of inputs
+- Number of outputs (One point of confusion might be that how does one check the number of outputs, ahead of time. So what we mean by nrhs is the number of outputs matlab is expecting rather than seeing ahead the number of outputs this code will produce) -->
 
 ```matlab
 // expects one output
@@ -35,8 +49,10 @@ outputMatrix = firstFunction();
 [outputMatrixA, outputMatrixB, outputMatrixC] = thirdFunction();
 ```
 
+<!-- 
+Since nlhs and nrhs are integers, regular C checking should work. We then use a function present in Mex API that allows us to signal to MATLAB that an error has occurred. There are a number of ways to signal to MATLAB that an error has occurred but we choose the simplest. THere are more sophisticated methods to signal to MATLAB about this but we choose to go with the most simple functions, mxErrMsgTxt.  -->
 
-Since nlhs and nrhs are integers, regular C checking should work. We then use a function present in Mex API that allows us to signal to MATLAB that an error has occurred. There are a number of ways to signal to MATLAB that an error has occurred but we choose the simplest. THere are more sophisticated methods to signal to MATLAB about this but we choose to go with the most simple functions, mxErrMsgTxt. 
+Since *nlhs* and *nrhs* are integers, we check using regular *if* conditions. If the check fails, we use a Mex-API function to signal to MATLAB that an error has occured. Mex-API allows multiple ways to communicate this but here, we present the simplest, *mxErrMsgTxt*. This function indicates to MATLAB that an error has occured and it must display the string argument provided to the function. 
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -58,18 +74,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 ## Checking the Data-types of Inputs
 
-Once the number of inputs and outputs are checked, we check the data-type of the inputs. This is again done with the help of a set of functions provided by the Mex-API. There are a number of functions that help with this. To following list gives the basic set. 
+<!-- Once the number of inputs and outputs are checked, we check the data-type of the inputs. This is again done with the help of a set of functions provided by the Mex-API. There are a number of functions that help with this. To following list gives the basic set.  -->
 
-
+Next, we check the data-type of the inputs. Mex-API provides a number of functions to do the same. Some examples are
 - mxIsDouble()
 - mxIsComplex()
 - mxGetNumberOfElements()
-- list five more
+<!-- - list five more -->
 
 
-Based on the data-structures you're working with, you'll have to mix and match these functions to make sure that the argument meets the conditions of the data-structure that we're expecting. The following shows some basic tests. 
-
-The following shows the basic way of testing whether an incoming data-structure is a double variable, array or matrix. Note that we assume it is the first input argument. The first datatype-based check basically checks if the data is of type double and not complex. 
+Based on the data-structures you're working with, you'll have to mix and match these functions to make sure that the argument meets the conditions of the data-structure that we're expecting. The following shows the basic way of testing whether an incoming data-structure is a double variable, array or matrix. Note that we assume it is the first input argument. The first datatype-check ensures the data is of type, double, and not complex (is real). 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -91,11 +105,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 ## Obtaining Input Dimensions
+<!-- 
+Once we make sure that we've received the right number of inputs, checked the outputs and then tested for the right data-type, we shall now find the way to obtain the dimensions of the input data. The following shows a simple way of obtaining the dimensions of the incoming array/matrix.  -->
 
-Once we make sure that we've received the right number of inputs, checked the outputs and then tested for the right data-type, we shall now find the way to obtain the dimensions of the input data. The following shows a simple way of obtaining the dimensions of the incoming array/matrix. 
-
-There are a number of functions used to get the dimensions of the input architectures. Some of them are
-
+After the number-check and datatype-check, we obtain the dimensions of the input-data. There are a number of functions used to get the dimensions of the input architectures. Some of them are
 
 - mxGetDimensions(): returns array containing the dimensions of the inputs. 
 - mxGetNumberOfElements(): returns the number of elements in the input data-structure (an array or a matrix);
@@ -126,7 +139,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 ## Obtaining Pointers to Input Arguments
 
-Now, we obtain the pointers to the input data-structures. The data structures: arrays or matrices are stored in the row-major format adhering to the conventions of C. So we access the input data-structures using a pointer. Using the pointer and the dimension information, we obtain the data values accordingly. There are a number of ways to obtain the pointers to the input data-structures. For now, we stick to the basic way of doing this, using, mxGetPr(). 
+<!-- Now, we obtain the pointers to the input data-structures. The data structures: arrays or matrices are stored in the row-major format adhering to the conventions of C. So we access the input data-structures using a pointer. Using the pointer and the dimension information, we obtain the data values accordingly. There are a number of ways to obtain the pointers to the input data-structures. For now, we stick to the basic way of doing this, using, mxGetPr().  -->
+
+Next, we obtain the pointers to the input-data. Matrices are stored in the row-major format, adhering to the conventions of C. This means that a pointer is sufficient to access the contents of an input-matrix. Using this pointer and the information we're privy regarding the dimensions of the input-matrix, we process these inputs. As usual, there area  number of ways to obtain pointers to the input-structure but the most simple way is to use, *mxGetpr()*. Following snippet shows how to use it.
+
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -156,13 +172,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 ## Setting Up Output Structure
-Once we've created whatever data-structure we have in mind, we create an output. To create a matrix output, there are a number of ways to create this
-
-\begin{itemize}
-	\item mxCreateNumericMatrix()
-\end{itemize}
-
-The following shows a simple example of assigning an output to the plhs
+To send the results back to Matlab, we need to allocate the data-structure associated with Matlab matrices and populate it. However, the class is opaque. So to use it, Mex-API provides us a number of functions. Here, we show the function used to create a Matlab-matrix. Note that this is not the only way of doing this. There are a number of different functions that give us similar functionality but we start slow. The following shows a simple example of creating a Matlab-matrix using, *mxCreateNumericMatrix()*. And the created output is *tied*  to pointer of output-pointers in the following manner. 
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -191,7 +201,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 ## Obtaining Pointer to Output
-Once we've setup the output data structure at plhs, we need to now obtain a pointer to it so that we can start copying the data to the structure. We obtain the pointers in a similar manner to how we obtained the pointer to the input arguments. Note that once the pointer to the output has been obtained, we use this pointer to store the results to. And once the mex-function ends, the data that was copied to this pointer is available at MATLAB as the data-structure that was returned. 
+<!-- Once we've setup the output data structure at plhs, we need to now obtain a pointer to it so that we can start copying the data to the structure. We obtain the pointers in a similar manner to how we obtained the pointer to the input arguments. Note that once the pointer to the output has been obtained, we use this pointer to store the results to. And once the mex-function ends, the data that was copied to this pointer is available at MATLAB as the data-structure that was returned.  -->
+
+To populate the Matlab-matrix, we first need to obtain a pointer to  it. This is obtained in the same way as that of obtaining pointers to the inputs. The results are then stored to the memory pointed to by this pointer. And once the mex-function ends, the data stored to the memory pointed to by this pointer is available to the Matlab-code, as the matrix that is returned. 
 
 ```C
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

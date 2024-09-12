@@ -1,10 +1,10 @@
-# miscellaneous
+# Miscellaneous
 
 
 ## Class CustomGPUObject
 The following object is used for the CUDA code. 
 
-```C
+```C++
 // Custom Class
 class CustomGPUObject
 {
