@@ -1,9 +1,9 @@
 # Signal Downsampling
 
-Downsampling is a signal processing technique used to reduce the sampling rate of a signal by retaining only a subset of the original samples. This process effectively reduces the data rate and the size of the dataset, making it more manageable for storage or further processing. The primary goal of downsampling is to capture the essential features of the signal while discarding redundant information. Mathematically, if $x[n]$ represents the original signal, the downsampled signal $y[m]$ can be obtained by taking every $$M$$-th sample of $x[n]$:
+Downsampling is a signal processing technique used to reduce the sampling rate of a signal by retaining only a subset of the original samples. This process effectively reduces the data rate and the size of the dataset, making it more manageable for storage or further processing. The primary goal of downsampling is to capture the essential features of the signal while discarding redundant information. Mathematically, if $x[n]$ represents the original signal, the downsampled signal $y[m]$ can be obtained by taking every $M$-th sample of $x[n]$:
 
 $$
-y[m] &= x[mM]
+y[m] = x[mM]
 $$
 
 where $$M$$ is the downsampling factor. This operation reduces the sampling rate by a factor of $$M$$, resulting in a new signal that is $$1/M$$ the length of the original signal. For instance, if $$x[n]$$ is sampled at 10 kHz and $$M = 2$$, the downsampled signal $$y[m]$$ will have a sampling rate of 5 kHz.
