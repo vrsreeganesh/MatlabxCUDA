@@ -10,15 +10,8 @@ x[m/L] & \text{if } m = kL \text{ for some integer } k \\
 \end{cases}
 $$
 
-<!-- $$
-\mathrm{CE}(p, y) = \begin{cases}
-    -\log(p) & \text{if } y = 1 \\ % & is your "\tab"-like command (it's a tab alignment character)
-    -\log(1-p) & \text{otherwise.}
-\end{cases}
-$$ -->
 
-
-where \( L \) is the upsampling factor. This operation increases the sampling rate by a factor of \( L \), resulting in a new signal that has \( L \) times the length of the original signal. For instance, if \( x[n] \) is sampled at 10 kHz and \( L = 2 \), the upsampled signal \( y[m] \) will have a sampling rate of 20 kHz.
+where $L$ is the upsampling factor. This operation increases the sampling rate by a factor of $L$, resulting in a new signal that has $L$ times the length of the original signal. For instance, if $x[n]$ is sampled at 10 kHz and $L = 2$, the upsampled signal $ y[m]$ will have a sampling rate of 20 kHz.
 
 Upsampling is commonly used in various applications such as digital communication, image processing, and audio signal processing. In digital communication, upsampling is used to match the sampling rate of a signal to the requirements of the transmission medium or the receiver. For example, a signal sampled at a lower rate might be upsampled to a higher rate to meet the specifications of a digital-to-analog converter (DAC). In image processing, upsampling can be used to increase the resolution of an image, making it suitable for high-resolution displays or further analysis. For instance, an image with a resolution of 1000x1000 pixels can be upsampled to 2000x2000 pixels, providing a finer grid for more detailed visualization. In audio processing, upsampling is used to improve the quality of audio playback by increasing the sampling rate, allowing for a smoother and more accurate representation of the sound. Proper filtering, such as using a low-pass filter, is usually required after upsampling to remove the spectral replicas introduced by the zero-insertion process and to ensure that the upsampled signal accurately represents the original signal.
 
