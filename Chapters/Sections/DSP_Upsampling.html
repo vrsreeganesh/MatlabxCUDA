@@ -448,10 +448,7 @@ x[m/L] &amp; \text{if } m = kL \text{ for some integer } k \\
 <p>Upsampling is commonly used in various applications such as digital communication, image processing, and audio signal processing. In digital communication, upsampling is used to match the sampling rate of a signal to the requirements of the transmission medium or the receiver. For example, a signal sampled at a lower rate might be upsampled to a higher rate to meet the specifications of a digital-to-analog converter (DAC). In image processing, upsampling can be used to increase the resolution of an image, making it suitable for high-resolution displays or further analysis. For instance, an image with a resolution of 1000x1000 pixels can be upsampled to 2000x2000 pixels, providing a finer grid for more detailed visualization. In audio processing, upsampling is used to improve the quality of audio playback by increasing the sampling rate, allowing for a smoother and more accurate representation of the sound. Proper filtering, such as using a low-pass filter, is usually required after upsampling to remove the spectral replicas introduced by the zero-insertion process and to ensure that the upsampled signal accurately represents the original signal.</p>
 <section id="matlab-code">
 <h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
-<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
-<span class="cm">Aim:</span>
-<span class="cm">    Demonstrating CUDA implementation of upsampling. </span>
-<span class="cm">%}</span>
+<div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Aim: Demonstrating CUDA implementation of upsampling. </span>
 
 <span class="c">%% Basic setup</span>
 <span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span><span class="w"> </span><span class="n">close</span><span class="w"> </span><span class="s">all</span><span class="p">;</span>
@@ -477,10 +474,7 @@ x[m/L] &amp; \text{if } m = kL \text{ for some integer } k \\
 <section id="cuda-code">
 <h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
 <p>Here, we see the downsampling implementation of CUDA. Since this is not a collaborative task, we can implement this without the use of any specialised memory. As usual, our cuda code first does the dimensionality check, data-type check, get dimensions, pointers to the data, send the data to the device, call the function, copy the results back and shut down.</p>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
-<span class="cm">Aim:</span>
-<span class="cm">    Building custom-kernel to up-sample code. </span>
-<span class="cm">*/</span><span class="w"> </span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// Aim: Building custom-kernel to up-sample code. </span>
 
 <span class="c1">// header-files</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mex.h&quot;</span>

@@ -20,10 +20,7 @@ Upsampling is commonly used in various applications such as digital communicatio
 ## Matlab Code
 
 ```matlab
-%{
-Aim:
-    Demonstrating CUDA implementation of upsampling. 
-%}
+%% Aim: Demonstrating CUDA implementation of upsampling. 
 
 %% Basic setup
 clc; clear; close all;
@@ -51,10 +48,7 @@ subplot(1,2,2); plot(outputArray); title("Output Array");
 Here, we see the downsampling implementation of CUDA. Since this is not a collaborative task, we can implement this without the use of any specialised memory. As usual, our cuda code first does the dimensionality check, data-type check, get dimensions, pointers to the data, send the data to the device, call the function, copy the results back and shut down. 
 
 ```C
-/*
-Aim:
-    Building custom-kernel to up-sample code. 
-*/ 
+// Aim: Building custom-kernel to up-sample code. 
 
 // header-files
 #include "mex.h"
