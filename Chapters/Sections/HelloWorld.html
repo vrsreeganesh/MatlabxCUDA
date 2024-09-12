@@ -57,6 +57,8 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/HelloWorld';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -186,6 +188,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../CUDAMemoryModel.html">CUDA Memory Model</a></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../BasicMexExamples.html">Basic Mex Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Hello World</a></li>
+
 <li class="toctree-l2"><a class="reference internal" href="CalculatingRowMean.html">Calculating Row Mean</a></li>
 <li class="toctree-l2"><a class="reference internal" href="FillingAnMxArray.html">Filling an mxArray</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MultiplyingRowMatrixWithScalar.html">Multiplying a row-matrix with a scalar</a></li>
@@ -415,9 +418,14 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Hello World</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-code">C Code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
 </ul>
+</li>
+</ul>
+
             </nav>
         </div>
     </div>
@@ -430,8 +438,15 @@ document.write(`
                   
   <section id="hello-world">
 <h1>Hello World<a class="headerlink" href="#hello-world" title="Link to this heading">#</a></h1>
-<p>Here, we present a very simple example that shows how to print from the mex-function. The mex-function takes no arguments, prints the statement and just return it.
-A very introductory example, yes. MATLAB calls the function and it just prints a, ``Hello World’’.</p>
+</section>
+<section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h1>
+<p>In this trivial example, we introduce the reader to printing a simple line from the mex-file. The general print function from mex-function is <em>mexPrintf</em>. That being said, regularly <em>fprintf</em> works just fine. We start with the simple <span class="math notranslate nohighlight">\(fprintf\)</span>. The call from Matlab to this function results in the code producing the result, “Hello World”.</p>
+<!-- 
+============================================================
+============================================================
+============================================================
+ -->
 <section id="c-code">
 <h2>C Code<a class="headerlink" href="#c-code" title="Link to this heading">#</a></h2>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mex.h&quot;</span>
@@ -443,24 +458,21 @@ A very introductory example, yes. MATLAB calls the function and it just prints a
 <span class="p">}</span>
 </pre></div>
 </div>
+<!-- 
+============================================================
+============================================================
+============================================================
+ -->
 </section>
 <section id="matlab-code">
 <h2>MATLAB Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
-<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
-<span class="cm">=================================================================================</span>
-<span class="cm">Aim: Printing hello world</span>
-<span class="cm">Notes:</span>
-<span class="cm">    Compile mex-file containing hello-world.</span>
-<span class="cm">    running hello-world</span>
-<span class="cm">=================================================================================</span>
-<span class="cm">%}</span>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Aim: Printing hello world</span>
 
 <span class="c">%% Basic setup</span>
 <span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span><span class="w"> </span><span class="n">close</span><span class="w"> </span><span class="s">all</span><span class="p">;</span>
 
 <span class="c">%% Compiling</span>
 <span class="nb">mex</span><span class="w"> </span><span class="n">HelloWorld</span><span class="p">.</span><span class="n">c</span>
-<span class="nb">fprintf</span><span class="p">(</span><span class="s">&quot;----------------------------- \n&quot;</span><span class="p">);</span>
 
 <span class="c">%% Calling mex-function</span>
 <span class="n">HelloWorld</span><span class="p">()</span>
@@ -533,9 +545,14 @@ A very introductory example, yes. MATLAB calls the function and it just prints a
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Hello World</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-code">C Code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
 </ul>
+</li>
+</ul>
+
   </nav></div>
 
 </div></div>
