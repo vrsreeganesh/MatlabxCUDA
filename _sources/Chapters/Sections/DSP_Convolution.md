@@ -3,15 +3,15 @@
 1D convolution is a mathematical operation applied to signals, typically an input signal and a kernel(also called, ``filter''), to produce a third signal that represents how the input-signal is modified by the filter. Born from signal processing, it is widely used in neural networks, data analysis and so on. Mathematically, the 1D convolution of an input signal, $x[n]$, with a kernel, $h[k]$, is defined as 
 
 $$
-y[n] &= (x * h)[n] = \sum_{k=-\infty}^{\infty} x[k] \cdot h[n-k]
+y[n] = (x * h)[n] = \sum_{k=-\infty}^{\infty} x[k] \cdot h[n-k]
 $$
 
-Here, \( y[n] \) is the resulting output signal, \( x[k] \) is the input signal, and \( h[n-k] \) is the kernel flipped and shifted by \( n \). The sum is taken over all possible values of \( k \), indicating that each point in the output signal is a weighted sum of the input signal values, where the weights are given by the kernel.
+Here, $y[n]$ is the resulting output signal, $x[k]$ is the input signal, and $h[n-k]$ is the kernel flipped and shifted by $n$. The sum is taken over all possible values of $k$, indicating that each point in the output signal is a weighted sum of the input signal values, where the weights are given by the kernel.
 
 In practical applications, both the input signal and the kernel are typically finite-length sequences. For a finite-length input signal \( x[n] \) of length \( N \) and a kernel \( h[k] \) of length \( M \), the convolution operation is often simplified and restricted to a finite sum. The equation for the finite-length 1D convolution is:
 
 $$
-y[n] &= \sum_{k=0}^{M-1} x[n-k] \cdot h[k]
+y[n] = \sum_{k=0}^{M-1} x[n-k] \cdot h[k]
 $$
 
 for \( n = 0, 1, 2, \ldots, N + M - 2 \). In this context, appropriate handling of boundary conditions, such as zero-padding the input signal, is necessary to compute the convolution at the edges. This operation produces an output signal \( y[n] \) that is typically longer than the original input signal, with a length of \( N + M - 1 \). 1D convolution is fundamental in many signal processing techniques, including filtering, smoothing, and feature extraction, and serves as a basis for more complex operations in higher dimensions.
