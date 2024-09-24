@@ -432,8 +432,14 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="beamforming">
 <h1><a class="reference external" href="https://en.wikipedia.org/wiki/Beamforming">Beamforming</a><a class="headerlink" href="#beamforming" title="Link to this heading">#</a></h1>
-<p>Beamforming is a signal processing technique that originates from the design of spatial filters into pencil shaped beams to strengthen signals in a specified direction and attenuate signals from other directions. Beamforming is applicable to either radiation or reception of energy. Here, we consider the reception part.</p>
-<p>A beamformer is a processor used along with an array to provide a versatile form of spatial filtering. It essentially performs spatial filtering to separate signals that have overlapping frequency content but generate from different spatial directions.</p>
+<p>Beamforming is a signal processing technique that originates from the design of spatial filters into pencil shaped beams to strengthen signals in a specified direction and attenuate signals from other directions. Beamforming is applicable to either radiation or reception of energy. Here, we consider the reception part. A beamformer is a processor used along with an array to provide a versatile form of spatial filtering. It essentially performs spatial filtering to separate signals that have overlapping frequency content but generate from different spatial directions.</p>
+<p>Beam forming or spatial filtering is the process by which an array of large number of spatially separated sensors discriminate the signal arriving from a specified direction from a combination of isotropic random noise, called ambient noise, and other directional signals. In the following simulations, we deal with a number of equally spaced elements separated by a distance of λ/2 , where λ is the wavelength of the frequency for which the beam former is designed.</p>
+<p>The assumptions under which we perform the simulations are</p>
+<ul class="simple">
+<li><p>The noise is anistotropic.</p></li>
+<li><p>Ambient noise at the sensor-to-sensor output is uncorrelated</p></li>
+<li><p>The signal at the sensor-to-sensor outputs are fully correlated</p></li>
+</ul>
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">#</a></h2>
 <ul class="simple">
