@@ -14,6 +14,8 @@ So, yeah, here's the book. Its not written the way one expects a standard book t
 
 (*you sly dog, you got me monologuing*)
 
+![you sly dog, you got me monologuing](https://media.tenor.com/Og0VjE0ySs4AAAAM/you-sly-dog-pointing-at.gif)
+
 
 # Table of Contents
 ```{tableofcontents}
