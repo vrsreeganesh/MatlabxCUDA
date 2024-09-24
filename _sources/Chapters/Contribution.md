@@ -1,0 +1,2 @@
+# Wanna Contribute?
+While I'd love to flex that I wrote this on my own, if you're someone who would like to jump on in this mission, feel free to write something up and send it to me at vrs@bu.edu. I'd love to take a look and add it. And of course, you'll be credited. 
