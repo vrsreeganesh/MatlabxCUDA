@@ -9,7 +9,7 @@ I_{filtered} = \mathcal{F}^{-1}(H_{lowpass\_filter}(f) \cdot F_{input}(f))\\
 I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 $$
 
-, where 
+where 
 - $F_{input}(f)$ is the fourier transform of the input image
 - $H_{lowpass\_filter}(f)$ is the fourier transform of the anti-aliasing filter
 - $\mathcal{F}^{-1}$ denotes the inverse Fourier transform. 
