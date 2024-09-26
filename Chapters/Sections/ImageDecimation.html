@@ -57,6 +57,8 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/ImageDecimation';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -418,8 +420,17 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda">CUDA</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-definition">Kernel Definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mex-function">Mex-Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda">Final CUDA</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -433,10 +444,79 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="decimation">
 <h1>Decimation<a class="headerlink" href="#decimation" title="Link to this heading">#</a></h1>
-<p>Image decimation is a process in digital image processing where the resolution of an image is reduced by selecting and retaining a subset of the original image’s pixels while discarding the rest. Unlike downsampling, which typically involves averaging groups of pixels to reduce image size, decimation straightforwardly removes pixels based on a specific pattern or algorithm. For instance, if we decimate an image by a factor of 2, we might keep every second pixel in both the horizontal and vertical directions, resulting in an image that retains only a quarter of the original pixels. Mathematically, if (I(x, y)) represents the original image, the decimated image (I_d(x’, y’)) can be expressed as (I_d(x’, y’) = I(sx’, sy’)), where (s) is the decimation factor, and (x’) and (y’) are the coordinates in the decimated image.</p>
-<p>An essential step in the decimation process is applying an anti-aliasing filter before removing pixels. Without this step, high-frequency information in the image could cause aliasing, where different signals become indistinguishable, leading to artifacts in the decimated image. The anti-aliasing filter is typically a low-pass filter that smooths the image by reducing high-frequency components. Mathematically, if (H(f)) represents the filter transfer function and (F(f)) the Fourier transform of the image, the filtered image (I_f(x, y)) is given by (I_f(x, y) = \mathcal{F}^{-1}(H(f) \cdot F(f))), where (\mathcal{F}^{-1}) denotes the inverse Fourier transform. Decimation is used in various contexts such as video processing, where reducing the resolution of frames lowers the bandwidth needed for streaming, and in remote sensing, where it manages the vast data collected by satellite sensors for quicker analysis. In machine learning, particularly in image preprocessing for training models, decimation reduces the input image size, thereby speeding up the training process by lowering computational overhead while preserving essential features for recognition tasks.</p>
+<p>Image decimation is a technique in Digital Image Processing where the size of a digital image is reduced while maintaing as much information as possible. This is different from downsampling where the samples in between are simply tossed out. In decimation, the image is processed before downsampling. This additional step is called anti-aliasing. Without this step, high-frequency information in the image could cause aliasing, where different signals become indistinguishable, leading to artifacts in the decimated image. The anti-aliasing filter is typically a low-pass filter that smooths the image by reducing high-frequency components.</p>
+<p>Mathematically, decimation is a two step process</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+I_{filtered} = \mathcal{F}^{-1}(H_{lowpass\_filter}(f) \cdot F_{input}(f))\\
+I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
+\end{split}\]</div>
+<p>, where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(F_{input}(f)\)</span> is the fourier transform of the input image</p></li>
+<li><p><span class="math notranslate nohighlight">\(H_{lowpass\_filter}(f)\)</span> is the fourier transform of the anti-aliasing filter</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{F}^{-1}\)</span> denotes the inverse Fourier transform.</p></li>
+</ul>
+<p>Decimation is used in various contexts such as video processing, where reducing the resolution of frames lowers the bandwidth needed for streaming, and in remote sensing, where it manages the vast data collected by satellite sensors for quicker analysis. In machine learning, particularly in image preprocessing for training models, decimation reduces the input image size, thereby speeding up the training process by lowering computational overhead while preserving essential features for recognition tasks.</p>
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
 <section id="matlab-code">
 <h2>MATLAB Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<p>In the Matlab code, as usual, we proceed to do the following steps</p>
+<ol class="arabic simple">
+<li><p>Compile CUDA code</p></li>
+<li><p>Setup the arguments</p></li>
+<li><p>Function call</p></li>
+<li><p>Exhibit results</p></li>
+</ol>
+<!-- ======================================================================= -->
+<p>Before we prepare the arguments and call the function, the first step is to compile the CUDA code so that it produces the executable, which is what we’ll be calling from our code. Note that this does <strong>NOT</strong> need to be compiled before the function is to be called. Ideally, the function just needs to be compiled once its completed or any changes has been made. The compiling-line is thrown into the script purely for simplicity and is often a good practice when developing, as any errors would be immediately brought to your attention.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Compiling Code</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">decimation_ip_cuda.cu</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>To create the image argument, feel free to read in any image of your liking (3-channels) and feed it as the argument to the function. In our example, however, we use Matlab’s <em>phantom</em> function to generate an image. The function, essentially, generates a head-phantom that is often used to test the numerical accuracy of image reconstruction algorithms. Though not relevant to our task, this example uses it because my intention is to get you, the reader, to be able to run the code with minimal external dependencies. And the phantom function is available in the base library of Matlab. So, we stick to <em>phantom</em>. If this function piques your interest, feel free to read up more at <a class="reference external" href="https://www.mathworks.com/help/images/ref/phantom.html#d126e261153">phantom Matlab Documentation</a>. We also setup the sampling factor.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Setting up Inputs</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">2048</span><span class="p">);</span>
+<span class="n">samplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we design the anti-aliasing filter. The anti-aliasing filter we’re designing here has a transition-bandwidth of 0.1, filter order = 31. We also design the code such that the end of the passband and the beginning of the stop band is symmetrical to the mid frequency. With those specifications, we create the filter with the function, <a class="reference external" href="https://www.mathworks.com/help/signal/ref/firpm.html"><em>firpm</em></a> which returns the parameters for <a class="reference external" href="https://en.wikipedia.org/wiki/Parks%E2%80%93McClellan_filter_design_algorithm">Parks-McClellan optimal FIR filter</a>. The function returns the filter for a 1D signal. We do the following operations so that it can be applied to 2D signals, that is images.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Designing an anti-aliasing filter</span>
+<span class="n">transitionbandwidth</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">0.1</span><span class="p">;</span><span class="w">                           </span>
+<span class="n">M</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w">                                               </span>
+<span class="n">filterorder</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">31</span><span class="p">;</span><span class="w">                          </span>
+<span class="n">endofpassband</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">M</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">transitionbandwidth</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span><span class="w">      </span><span class="c">% end of passband</span>
+<span class="n">startofstopband</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">M</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">transitionbandwidth</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span><span class="w">    </span><span class="c">% start of stop-band</span>
+<span class="n">filtercoefficients</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">firpm</span><span class="p">(</span><span class="n">filterorder</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="k">...</span><span class="c">       % designing our filters</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">endofpassband</span><span class="p">,</span><span class="w"> </span><span class="n">startofstopband</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]);</span>
+<span class="n">inputKernel</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">repmat</span><span class="p">(</span><span class="n">filtercoefficients</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="nb">length</span><span class="p">(</span><span class="n">filtercoefficients</span><span class="p">),</span><span class="w"> </span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="o">.*</span><span class="w"> </span><span class="nb">repmat</span><span class="p">(</span><span class="nb">transpose</span><span class="p">(</span><span class="n">filtercoefficients</span><span class="p">),</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nb">length</span><span class="p">(</span><span class="n">filtercoefficients</span><span class="p">)]);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we call the CUDA function with the appropriate arguments and present the results side by side.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Running Kernel</span>
+<span class="n">outputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">decimation_ip_cuda</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="n">inputKernel</span><span class="p">,</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">);</span>
+
+<span class="c">%% Plotting the Results</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">inputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Input Image&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">outputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Decimated Image&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<section id="final-matlab-code">
+<h3>Final Matlab Code<a class="headerlink" href="#final-matlab-code" title="Link to this heading">#</a></h3>
+<!-- ======================================================================= -->
+<p>The final Matlab code should look like the following</p>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">    Aim: Demonstrating Decimation with Custom CUDA Kernels</span>
 <span class="cm">%}</span>
@@ -472,9 +552,342 @@ document.write(`
 <span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">outputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Decimated Image&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
 </section>
-<section id="cuda-code">
-<h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
+</section>
+<section id="cuda">
+<h2>CUDA<a class="headerlink" href="#cuda" title="Link to this heading">#</a></h2>
+<p>Due to the collaborative nature of Filtering, we’ll be using shared-memory for this task. The use of shared-memory means that this must be considered when deciding on the block-configuration, grid-configuration, mapping from thread-address to the data-structure address.</p>
+<p>For the block-configuration, we must ensure that the number of threads in a block is greater than or equal to the number of elements in the kernel. This is because the shared-memory can only be used by the threads in a block. So if the output at a pixel requires the inner-product of the neighbours, the element-wise products of the neighbours and the kernel elements are done in the shared-memory.</p>
+<p>Thus, we’re assuming each block to each output-pixel since the threads under the block are used to compute the amplitude of that particular pixel. Thus, the number of blocks are decided to be the number of pixels since we want to calculate the output of every output-pixel. ANd for simplicity, we make sure that the grid-configuration is such that the number of blocks along each dimension is less than or equal to the number of pixels along each dimension.</p>
+<section id="kernel-definition">
+<h3>Kernel Definition<a class="headerlink" href="#kernel-definition" title="Link to this heading">#</a></h3>
+<p>The decimation kernel has the following arguments</p>
+<ol class="arabic simple">
+<li><p>Pointer to input-image in the global-memory</p></li>
+<li><p>pointer to input-kernel in the global-memory</p></li>
+<li><p>sampling-factor</p></li>
+<li><p>Pointer to the global-memory, allocated for output</p></li>
+<li><p>array containing dimensions of the input-image</p></li>
+<li><p>array containing dimensions of the kernel-matrix</p></li>
+<li><p>number of elements in the kernel</p></li>
+</ol>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// global functions</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">decimation_ip_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                                   </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputKernel</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                   </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">numElementsKernel</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Since filtering is a collaborative processing, we use shared memory for this. For this code we’re using dynamic shared memory, so we declare the pointer we’ll be using to point to the shared-memory in the following manner</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// declaring shared memory</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we produce mapping from the thread-address to output-index that particular block is responsible for. This is followed by obtaining the linear-index for the same output-index. This is done in the following manner</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// Getting coordinates of the final Output</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidy</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidz</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Here, we calculate the input-index the current block is responsible for.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Getting the coordinates of the pixel for which we wanna filter</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidz</span><span class="p">;</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Finding the coordinates of the kernel point</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidx_kernel</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidy_kernel</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidz_kernel</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// The neighbour pixel this thread is responsible for</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tidy_kernel</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidz_input</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidx_neighbour</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidy_neighbour</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidz_neighbour</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Finding dot-product</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_neighbour</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidy_neighbour</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidx_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidy_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// finding the product and writing to shared memory</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D_neighbour</span><span class="p">]</span><span class="o">*</span>\
+<span class="w">                </span><span class="n">d_inputKernel</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">tidy_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// setting the invalid values to be zero so that we can </span>
+<span class="w">        </span><span class="c1">// just add without checking the bounds or what nots</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Getting the first thread to add these values up</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// variable that holds the accumulated values </span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accuSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// accumulating values</span>
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">i</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"> </span>\
+<span class="w">            </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">accuSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">sharedMem</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// writing the values</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_input</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>
+<span class="w">           </span><span class="n">tidy_input</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">            </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D_Output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">accuSum</span><span class="p">;</span>
+
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Putting it together the kernel definition should look like this</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// global functions</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">decimation_ip_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                                   </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputKernel</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                   </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">numElementsKernel</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// declaring shared memory</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+
+<span class="w">    </span><span class="c1">// Getting coordinates of the final Output</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidy</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidz</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// Getting the coordinates of the pixel for which we wanna filter</span>
+<span class="w">    </span><span class="c1">// const int samplingFactor = (int)d_inputSamplingFactor[0];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidz</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Finding the coordinates of the kernel point</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidx_kernel</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidy_kernel</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidz_kernel</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// The neighbour pixel this thread is responsible for</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tidy_kernel</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidz_input</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidx_neighbour</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidy_neighbour</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                </span><span class="n">tidz_neighbour</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// Finding dot-product</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_neighbour</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidy_neighbour</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidx_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidy_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// finding the product and writing to shared memory</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D_neighbour</span><span class="p">]</span><span class="o">*</span>\
+<span class="w">                </span><span class="n">d_inputKernel</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">tidy_kernel</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// setting the invalid values to be zero so that we can </span>
+<span class="w">        </span><span class="c1">// just add without checking the bounds or what nots</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Getting the first thread to add these values up</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// variable that holds the accumulated values </span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accuSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// accumulating values</span>
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">i</span><span class="o">&lt;</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsKernel</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"> </span>\
+<span class="w">            </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">accuSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">sharedMem</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// writing the values</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_input</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>
+<span class="w">           </span><span class="n">tidy_input</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">            </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D_Output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">accuSum</span><span class="p">;</span>
+
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B -->
+<!-- B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B -->
+<!-- B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B -->
+<!-- B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B-B -->
+</section>
+<section id="mex-function">
+<h3>Mex-Function<a class="headerlink" href="#mex-function" title="Link to this heading">#</a></h3>
+<p>In the mex-function, we first start by establishing the validity of the input. We check the number of inputs, the expected number of outputs and the data-type of inputs. This is done in the following manner</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// checking number of inputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrhs</span><span class="o">!=</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Inputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// checking number of expected outputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Expected Outputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// checking input data-types</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The first argument is expected to be a matrix of type, double </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The second argument is expected to be a matrix of type, double </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The third argument is expected to be a matrix of type, double </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Once the input-data’s validity has been established, next we setup the arguments to its appropriate data-structures. The input-image and the kernel-matrix are initialised to objects of the structure, <em>CustomGPUObject</em>. Note that we do not use an object of the mentioned class to store the sampling factor because to send scalars to the global-memory, we do not require CUDA API calls. Once the inputs have been setup, we send the input-image and kernel-matrix to the device global-memory using the class method, <em>copyFromHostDevice()</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Fetching Inputs</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">inputImage</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">kernelMatrix</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">mxGetScalar</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// Sending the Data to the Device</span>
+<span class="w">    </span><span class="n">inputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">kernelMatrix</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we setup the output-dimensions. Since the output is a decimated image, the output-image will have dimensions of the original image divided by the sampling-factor.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// setting up output dimension</span>
+<span class="w">    </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">outputDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">memcpy</span><span class="p">(</span><span class="n">outputDimensions</span><span class="p">,</span><span class="w"> </span>
+<span class="w">           </span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">,</span><span class="w"> </span>
+<span class="w">           </span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)((</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">samplingFactor</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">samplingFactor</span><span class="p">);</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)((</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">samplingFactor</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">samplingFactor</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we create a Matlab matrix using the function <a class="reference external" href="https://www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html?searchHighlight=mxcreatenumericarray&amp;amp;s_tid=srchtitle_support_results_1_mxcreatenumericarray"><em>mxCreateNumericArray</em></a>. This created matrix is then used to create an object of our class, <em>CustomGPUObject</em>. We use this object instead of the pointer directly to make coding easier. As usual, since our work is on the GPU, we use the class method, <em>copyFromHostToDevice()</em> to make memory for the output and sending the output-dimensions to the GPU memory.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// setting up output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">outputDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputImage</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next,we prepare for the function call by setting up the block-configuration and grid-configuration. The block-configuration and grid-configuration are chosein in such a way that the block-configurations along each-dimensions are greater than and nearest power of 2 of the kernel-dimensions. The grid-configurations are chosen to be the dimensions of the input-image.</p>
+<p>Since we’re using shared-memory for this task, the amount must be passed as the thread launch-configuration parameter. The launch-configuration parameter’s setup and kernel-launch is shown below</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// kernel-call</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="n">pow2roundup</span><span class="p">(</span><span class="n">kernelMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+<span class="w">                            </span><span class="n">pow2roundup</span><span class="p">(</span><span class="n">kernelMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+<span class="w">                            </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridConfiguration</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">outputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+<span class="w">                           </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">outputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+<span class="w">                            </span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">])));</span>
+<span class="w">    </span><span class="n">decimation_ip_cuda</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">blockConfiguration</span><span class="p">,</span>
+<span class="w">                         </span><span class="n">kernelMatrix</span><span class="p">.</span><span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="o">&gt;&gt;&gt;</span>
+<span class="w">                                </span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">kernelMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">outputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">kernelMatrix</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">outputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">kernelMatrix</span><span class="p">.</span><span class="n">numElements</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Once the function call is complted, we copy the output-results from the gpu memory to the host-memory using the method, <em>copyFromDeviceToHost()</em> of the class, <em>CustomGPUObject</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// fetching outputs from device global-memory to host-memory</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// shutting down</span>
+<span class="w">    </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="final-cuda">
+<h3>Final CUDA<a class="headerlink" href="#final-cuda" title="Link to this heading">#</a></h3>
+<p>Putting it all together, we should get the following</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm">    Aim: Implementing Image Decimation Using Custom CUDA-Kernels</span>
 <span class="cm">*/</span><span class="w"> </span>
@@ -666,6 +1079,23 @@ document.write(`
 <span class="p">}</span>
 </pre></div>
 </div>
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>MathWorks. “Phantom.” MATLAB Documentation, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/images/ref/phantom.html#d126e261153"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+<li><p>MathWorks. “mxCreateNumericArray.” MATLAB API Reference, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html?searchHighlight=mxcreatenumericarray&amp;s_tid=srchtitle_support_results_1_mxcreatenumericarray"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+<li><p>“Parks–McClellan Filter Design Algorithm.” Wikipedia: The Free Encyclopedia, Wikimedia Foundation, 26 Sept. 2024, <a class="reference external" href="http://en.wikipedia.org/wiki/Parks%E2%80%93McClellan_filter_design_algorithm">en.wikipedia.org/wiki/Parks–McClellan_filter_design_algorithm</a>. Accessed 26 Sept. 2024.</p></li>
+</ul>
 </section>
 </section>
 
@@ -733,8 +1163,17 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda">CUDA</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-definition">Kernel Definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mex-function">Mex-Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda">Final CUDA</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 
