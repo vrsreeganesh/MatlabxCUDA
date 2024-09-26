@@ -420,7 +420,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab">Matlab</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#full-matlab-code">Full Matlab Code</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
 </ul>
             </nav>
@@ -435,7 +438,7 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="upsampling">
 <h1>Upsampling<a class="headerlink" href="#upsampling" title="Link to this heading">#</a></h1>
-<p>Image upsampling is a technique used to increase the resolution of an image by inserting additional pixels between the original ones, effectively enlarging the image while attempting to preserve its visual quality. Unlike interpolation, which estimates the values of new pixels based on neighboring pixels, upsampling primarily involves the insertion of zeros or repeated values in a systematic way, followed by filtering to smooth out the result. In mathematical terms, if the original image is represented as a matrix ( I ) of size ( M \times N ), upsampling by a factor of ( L ) involves creating a new matrix ( I_{up} ) of size ( LM \times LN ), where the new matrix has zeros or repeated pixel values inserted between the original ones. For instance, when upsampling by zero insertion, the upsampled image ( I_{up} ) can be represented as:</p>
+<p>Interpolation is the process by which we increase the size of an image without loss of information and maintaining the visual clarity. Image upsampling is the first step of this process. Image upsampling primarily involves the insertion of a number of zeros (depending on the factor by which interpolation/upsampling is taking place) in between pixels of the original image. Mathematically, if the original image is represented as a matrix, <span class="math notranslate nohighlight">\(I\)</span>, of size <span class="math notranslate nohighlight">\(M \times N\)</span> , upsampling by a factor of <span class="math notranslate nohighlight">\(L\)</span>  involves creating a new matrix <span class="math notranslate nohighlight">\(I_{up}\)</span> of size <span class="math notranslate nohighlight">\(LM \times LN\)</span>, where the new matrix has zeros or repeated pixel values inserted between the original ones.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 I_{up}(x, y) = 
@@ -444,10 +447,40 @@ I_{up}(x, y) =
     0 &amp; \text{otherwise}
 \end{cases}
 \end{split}\]</div>
-<p>To achieve a visually pleasing result, this upsampled image is typically processed with a low-pass filter, which interpolates the zero or repeated values to create smooth transitions between the original pixel values.</p>
-<p>Image upsampling is widely used in various applications, such as in digital zooming, where an image is magnified without capturing new data, thus requiring the enhancement of existing pixels to maintain quality. In satellite and aerial imaging, upsampling is crucial for enhancing low-resolution images, allowing for detailed analysis of geographical features and urban landscapes. Additionally, upsampling is employed in medical imaging, where higher resolution images can improve the visualization of anatomical structures and aid in diagnosis. For example, in computed tomography (CT) scans, upsampling can help generate more detailed cross-sectional images of the body. Moreover, upsampling plays a significant role in the field of image super-resolution, where machine learning algorithms are trained to upscale images, producing higher resolution outputs from low-resolution inputs, often used in security and surveillance systems to enhance the clarity of captured images.</p>
-<section id="matlab-code">
-<h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<p>Since image upsampling is the first step in classical image interpolation, it will also be used in all the places where interpolation is used.</p>
+<section id="matlab">
+<h2>Matlab<a class="headerlink" href="#matlab" title="Link to this heading">#</a></h2>
+<p>In Matlab, we compile the code, produce the two arguments required for this process. This process reuqires two inputs: the image to be upsampled, and the factor by which interpolation must take place.</p>
+<p>Before we prepare the arguments and call the function, the first step is to compile the CUDA code so that it produces the executable, which is what we’ll be calling from our code. Note that this does <strong>NOT</strong> need to be compiled before the function is to be called. Ideally, the function just needs to be compiled once its completed or any changes has been made. The compiling-line is thrown into the script purely for simplicity and is often a good practice when developing, as any errors would be immediately brought to your attention.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Compiling Code</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">upsampling_ip_cuda.cu</span>
+</pre></div>
+</div>
+<p>To create the image argument, feel free to read in any image of your liking (3-channels) and feed it as the argument to the function. In our example, however, we use Matlab’s <em>phantom</em> function to generate an image. The function, essentially, generates a head-phantom that is often used to test the numerical accuracy of image reconstruction algorithms. Though not relevant to our task, this example uses it because my intention is to get you, the reader, to be able to run the code with minimal external dependencies. And the phantom function is available in the base library of Matlab. So, we stick to <em>phantom</em>. If this function piques your interest, feel free to read up more at <a class="reference external" href="https://www.mathworks.com/help/images/ref/phantom.html#d126e261153">phantom Matlab Documentation</a>.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Preparing Input</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">256</span><span class="p">);</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">repmat</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]);</span>
+</pre></div>
+</div>
+<p>The function takes in multiple arguments but for our context, all we need to know is that passing a non-zero integer, <span class="math notranslate nohighlight">\(N\)</span>, to <em>phantom()</em> makes the function return a phantom image of dimensions <span class="math notranslate nohighlight">\(N \times N\)</span>. For the demonstration, we choose the second argument, the upsampling factor, to be, <span class="math notranslate nohighlight">\(2\)</span>.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Preparing Second Input</span>
+<span class="n">upsamplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Now that we have both the arguments, we call the function. The function returns the upsampled image.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Calling function</span>
+<span class="n">outputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">upsampling_ip_cuda</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="n">upsamplingFactor</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This image is displayed side-by-side so that we can see the difference in dimensions.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Plotting</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">inputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Input Image&quot;</span><span class="p">);</span><span class="w"> </span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">outputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Output Image&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<section id="full-matlab-code">
+<h3>Full Matlab Code<a class="headerlink" href="#full-matlab-code" title="Link to this heading">#</a></h3>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">    Aim: Demonstrating Upsampling with CUDA Kernels</span>
 <span class="cm">%}</span>
@@ -458,9 +491,11 @@ I_{up}(x, y) =
 <span class="c">%% Compiling Code</span>
 <span class="n">mexcuda</span><span class="w"> </span><span class="s">upsampling_ip_cuda.cu</span>
 
-<span class="c">%% Preparing Input</span>
+<span class="c">%% Preparing First Input</span>
 <span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">256</span><span class="p">);</span>
 <span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">repmat</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]);</span>
+
+<span class="c">%% Preparing Second Input</span>
 <span class="n">upsamplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
 
 <span class="c">%% Calling function</span>
@@ -472,6 +507,7 @@ I_{up}(x, y) =
 <span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">outputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">colorbar</span><span class="p">;</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Output Image&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="cuda-code">
 <h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
@@ -650,7 +686,10 @@ I_{up}(x, y) =
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab">Matlab</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#full-matlab-code">Full Matlab Code</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
 </ul>
   </nav></div>

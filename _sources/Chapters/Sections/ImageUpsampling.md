@@ -1,6 +1,6 @@
 # Upsampling
 
-Image upsampling is a technique used to increase the resolution of an image by inserting additional pixels between the original ones, effectively enlarging the image while attempting to preserve its visual quality. Unlike interpolation, which estimates the values of new pixels based on neighboring pixels, upsampling primarily involves the insertion of zeros or repeated values in a systematic way, followed by filtering to smooth out the result. In mathematical terms, if the original image is represented as a matrix \( I \) of size \( M \times N \), upsampling by a factor of \( L \) involves creating a new matrix \( I_{up} \) of size \( LM \times LN \), where the new matrix has zeros or repeated pixel values inserted between the original ones. For instance, when upsampling by zero insertion, the upsampled image \( I_{up} \) can be represented as:
+Interpolation is the process by which we increase the size of an image without loss of information and maintaining the visual clarity. Image upsampling is the first step of this process. Image upsampling primarily involves the insertion of a number of zeros (depending on the factor by which interpolation/upsampling is taking place) in between pixels of the original image. Mathematically, if the original image is represented as a matrix, $I$, of size $M \times N$ , upsampling by a factor of $L$  involves creating a new matrix $I_{up}$ of size $LM \times LN$, where the new matrix has zeros or repeated pixel values inserted between the original ones.
 
 $$
 I_{up}(x, y) = 
@@ -10,12 +10,53 @@ I_{up}(x, y) =
 \end{cases}
 $$
 
-To achieve a visually pleasing result, this upsampled image is typically processed with a low-pass filter, which interpolates the zero or repeated values to create smooth transitions between the original pixel values.
-
-Image upsampling is widely used in various applications, such as in digital zooming, where an image is magnified without capturing new data, thus requiring the enhancement of existing pixels to maintain quality. In satellite and aerial imaging, upsampling is crucial for enhancing low-resolution images, allowing for detailed analysis of geographical features and urban landscapes. Additionally, upsampling is employed in medical imaging, where higher resolution images can improve the visualization of anatomical structures and aid in diagnosis. For example, in computed tomography (CT) scans, upsampling can help generate more detailed cross-sectional images of the body. Moreover, upsampling plays a significant role in the field of image super-resolution, where machine learning algorithms are trained to upscale images, producing higher resolution outputs from low-resolution inputs, often used in security and surveillance systems to enhance the clarity of captured images.
+Since image upsampling is the first step in classical image interpolation, it will also be used in all the places where interpolation is used. 
 
 
-## Matlab Code
+## Matlab
+In Matlab, we compile the code, produce the two arguments required for this process. This process reuqires two inputs: the image to be upsampled, and the factor by which interpolation must take place.
+
+Before we prepare the arguments and call the function, the first step is to compile the CUDA code so that it produces the executable, which is what we'll be calling from our code. Note that this does **NOT** need to be compiled before the function is to be called. Ideally, the function just needs to be compiled once its completed or any changes has been made. The compiling-line is thrown into the script purely for simplicity and is often a good practice when developing, as any errors would be immediately brought to your attention.
+
+```Matlab
+%% Compiling Code
+mexcuda upsampling_ip_cuda.cu
+```
+
+To create the image argument, feel free to read in any image of your liking (3-channels) and feed it as the argument to the function. In our example, however, we use Matlab's *phantom* function to generate an image. The function, essentially, generates a head-phantom that is often used to test the numerical accuracy of image reconstruction algorithms. Though not relevant to our task, this example uses it because my intention is to get you, the reader, to be able to run the code with minimal external dependencies. And the phantom function is available in the base library of Matlab. So, we stick to *phantom*. If this function piques your interest, feel free to read up more at [phantom Matlab Documentation](https://www.mathworks.com/help/images/ref/phantom.html#d126e261153).
+
+```Matlab
+%% Preparing Input
+inputImage = phantom(256);
+inputImage = repmat(inputImage, [1,1,3]);
+```
+
+The function takes in multiple arguments but for our context, all we need to know is that passing a non-zero integer, $N$, to *phantom()* makes the function return a phantom image of dimensions $N \times N$. For the demonstration, we choose the second argument, the upsampling factor, to be, $2$. 
+
+```Matlab
+%% Preparing Second Input
+upsamplingFactor = 2;
+```
+
+Now that we have both the arguments, we call the function. The function returns the upsampled image. 
+
+```Matlab
+%% Calling function
+outputImage = upsampling_ip_cuda(inputImage, upsamplingFactor);
+```
+
+This image is displayed side-by-side so that we can see the difference in dimensions. 
+```Matlab
+%% Plotting
+figure(1);
+subplot(1,2,1); imagesc(inputImage); colorbar; title("Input Image"); 
+subplot(1,2,2); imagesc(outputImage); colorbar; title("Output Image");
+```
+
+
+
+### Full Matlab Code
+
 ```Matlab
 %{
     Aim: Demonstrating Upsampling with CUDA Kernels
@@ -27,9 +68,11 @@ clc; clear;
 %% Compiling Code
 mexcuda upsampling_ip_cuda.cu
 
-%% Preparing Input
+%% Preparing First Input
 inputImage = phantom(256);
 inputImage = repmat(inputImage, [1,1,3]);
+
+%% Preparing Second Input
 upsamplingFactor = 2;
 
 %% Calling function
