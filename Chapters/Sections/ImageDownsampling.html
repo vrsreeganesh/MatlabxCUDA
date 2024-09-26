@@ -57,6 +57,8 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/ImageDownsampling';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -418,8 +420,17 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#full-matlab-code">Full Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel">Kernel</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#main">Main</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -433,12 +444,50 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="downsampling">
 <h1>Downsampling<a class="headerlink" href="#downsampling" title="Link to this heading">#</a></h1>
-<p>Image downsampling is the process of reducing the resolution of an image by decreasing its number of pixels. This is typically achieved by averaging or combining groups of pixels into single pixels. A common method for downsampling is using a box filter, where a block of ( n \times n ) pixels in the original image is averaged to produce a single pixel in the downsampled image. Mathematically, if the original image has pixel values ( I(x, y) ), the downsampled image with a scaling factor of ( n ) will have pixel values given by:
-[ I_{\text{downsampled}}(i, j) = \frac{1}{n^2} \sum_{k=0}^{n-1} \sum_{l=0}^{n-1} I(i \cdot n + k, j \cdot n + l) ]
-where ( i ) and ( j ) are the coordinates in the downsampled image. This process effectively reduces the spatial resolution, making the image smaller in size and often smoother.</p>
-<p>Downsampling is widely used in various applications where reduced image resolution is sufficient or desirable. In digital photography, downsampling is employed to create thumbnail images for quick previews. It is also used in image compression techniques to reduce the amount of data required to represent an image, making storage and transmission more efficient. Another application is in multi-scale image analysis, such as in object detection and recognition tasks, where images at different resolutions are analyzed to capture features at various scales. For example, in medical imaging, downsampling can be used to quickly review large sets of images before examining them in full detail. In each of these cases, downsampling helps manage data more efficiently without significantly compromising the essential information in the image.</p>
+<p>Image downsampling is the process of reducing the resolution of an image by decreasing the number of pixels. This is typically achieved by removing samples from the image evenly. Note that this process is different decimation where processing is carried out before downsampling resulting in the image maintaining its visual properties. Downsampling often causes artifacts while decimation does not. Mathematically, the transformation is as follows</p>
+<div class="math notranslate nohighlight">
+\[
+I_{down\ sampled}(i, j) = I_{input}(i*n, j*n)
+\]</div>
+<p>Downsampling is the last step in classical image decimation. So where classical decimation is used, downsampling is also used.
+In digital photography, downsampling is employed to create thumbnail images for quick previews. It is also used in image compression techniques to reduce the amount of data required to represent an image, making storage and transmission more efficient. Another application is in multi-scale image analysis, such as in object detection and recognition tasks, where images at different resolutions are analyzed to capture features at various scales. For example, in medical imaging, downsampling can be used to quickly review large sets of images before examining them in full detail. In each of these cases, downsampling helps manage data more efficiently without significantly compromising the essential information in the image.</p>
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
 <section id="matlab-code">
 <h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<p>Before we prepare the arguments and call the function, the first step is to compile the CUDA code so that it produces the executable, which is what we’ll be calling from our code. Note that this does <strong>NOT</strong> need to be compiled before the function is to be called. Ideally, the function just needs to be compiled once its completed or any changes has been made. The compiling-line is thrown into the script purely for simplicity and is often a good practice when developing, as any errors would be immediately brought to your attention.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Compiling image</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">downsampling_ip_cuda.cu</span>
+</pre></div>
+</div>
+<!-- ====================================================================== -->
+<p>To create the image argument, feel free to read in any image of your liking (3-channels) and feed it as the argument to the function. In our example, however, we use Matlab’s <em>phantom</em> function to generate an image. The function, essentially, generates a head-phantom that is often used to test the numerical accuracy of image reconstruction algorithms. Though not relevant to our task, this example uses it because my intention is to get you, the reader, to be able to run the code with minimal external dependencies. And the phantom function is available in the base library of Matlab. So, we stick to <em>phantom</em>. If this function piques your interest, feel free to read up more at <a class="reference external" href="https://www.mathworks.com/help/images/ref/phantom.html#d126e261153">phantom Matlab Documentation</a>.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Preparing Input</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">512</span><span class="p">);</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">repmat</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]);</span>
+<span class="n">downsamplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Now, we call the function with the prepared arguments. The returned results are then plotted to compare the input and the output.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Calling Function</span>
+<span class="n">outputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">downsampling_ip_cuda</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="n">downsamplingFactor</span><span class="p">);</span>
+
+<span class="c">%% Plotting </span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">inputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Input Image&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">imagesc</span><span class="p">(</span><span class="n">outputImage</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Downsampled Image&quot;</span><span class="p">);</span><span class="w">    </span>
+</pre></div>
+</div>
+<section id="full-matlab-code">
+<h3>Full Matlab Code<a class="headerlink" href="#full-matlab-code" title="Link to this heading">#</a></h3>
+<p>Putting it together, the final code should look like the following</p>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">    Aim: Demostrating Downsampling using custom CUDA-kernels</span>
 <span class="cm">%}</span>
@@ -464,8 +513,193 @@ where ( i ) and ( j ) are the coordinates in the downsampled image. This process
 </pre></div>
 </div>
 </section>
+</section>
 <section id="cuda-code">
 <h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
+<p>For CUDA code, we mainly define two bodies: the kernel and the main function.</p>
+<section id="kernel">
+<h3>Kernel<a class="headerlink" href="#kernel" title="Link to this heading">#</a></h3>
+<p>The kernel takes in the following sets of arguments</p>
+<ol class="arabic simple">
+<li><p>The pointer to the input-matrix</p></li>
+<li><p>sampling factor</p></li>
+<li><p>Pointer to the memory allocated for output</p></li>
+<li><p>Pointer to the array containing input-dimensions</p></li>
+<li><p>Pointer to the array containing output-dimensions</p></li>
+</ol>
+<p>So its defined as follows</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// kernel</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">downsampling_ip_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                                     </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                     </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                                     </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">,</span>
+<span class="w">                                     </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>We first create mappings from the thread address to the data-address in the following manner</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// address </span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Next, we map the input-array indices to the output-array in the following manner. We also test the validity so that wrong accessses or rights are not made.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// checking validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx</span><span class="o">&lt;</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">tidy</span><span class="o">&lt;</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Indexing into the input</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidz</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                        </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                        </span><span class="n">tidy_input</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                        </span><span class="n">tidz_input</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">       </span>
+<span class="w">       </span><span class="p">...</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>We then obtain linear indexes into the output array from the output-index. This is then followed by copying from the input-index to the output-index</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">        </span><span class="c1">// indexing into the output</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                         </span><span class="n">tidy</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                         </span><span class="n">tidz</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"> </span>
+
+<span class="w">        </span><span class="c1">// copying the value</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D_Output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D_Input</span><span class="p">];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>The final kernel definition should look like this</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// kernel</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">downsampling_ip_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                                     </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                     </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                                     </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">,</span>
+<span class="w">                                     </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// address </span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// checking validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx</span><span class="o">&lt;</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">tidy</span><span class="o">&lt;</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Indexing into the input</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidz</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                        </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                        </span><span class="n">tidy_input</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                        </span><span class="n">tidz_input</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// indexing into the output</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                         </span><span class="n">tidy</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                         </span><span class="n">tidz</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"> </span>
+<span class="w">                                         </span>
+<span class="w">        </span><span class="c1">// copying the value</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D_Output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D_Input</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// synchronizing</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="main">
+<h3>Main<a class="headerlink" href="#main" title="Link to this heading">#</a></h3>
+<p>As usual, we start by first checking the validity of the arguments passed. We check the number of inputs, the number of expected outputs and the data-type of the inputs</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// gateway Function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// checking number of inputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrhs</span><span class="o">!=</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Inputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// checking number of outputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Expected Outputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// checking input data type</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The First Argument is of the wrong data-type </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The First Argument is of the wrong data-type </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="w">     </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Once the validity has been checkd, we copy the results in to the appropriate data-structure. Note that we don’t use an object of the class, <em>CustomGPUObject</em> for the sampling-factor, because its a scalar and scalars can be made available in the GPU memory-space without any CUDA API calls. We then make the input-image available in the GPU global-memory using the method, <em>copyFromHostToDevice()</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Fetching Inputs</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">inputImage</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">mxGetScalar</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// Sending the Data to the GPU</span>
+<span class="w">    </span><span class="n">inputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Next, we setup the dimensions of the output in the following manner</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// setting up outputs</span>
+<span class="w">    </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">outputDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)((</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">samplingFactor</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">samplingFactor</span><span class="p">);</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)((</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">samplingFactor</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">samplingFactor</span><span class="p">);</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>Next, we create a Matlab matrix using the function <a class="reference external" href="https://www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html?searchHighlight=mxcreatenumericarray&amp;amp;s_tid=srchtitle_support_results_1_mxcreatenumericarray"><em>mxCreateNumericArray</em></a>. This created matrix is then used to create an object of our class, <em>CustomGPUObject</em>. We use this object instead of the pointer directly to make coding easier. As usual, since our work is on the GPU, we use the class method, <em>copyFromHostToDevice</em> to make memory for the output and sending the output-dimensions to the GPU memory.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// constructing the output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">outputDimensions</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                   </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                   </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputImage</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we prepare for the function call in the following manner. The block-size is fixed for general optimality reasons. The number of blocks along each dimensions are chosen in such a way that the number of threads along each dimension is greater or equal to the number of pixels/elements along each dimension.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// preparing for function call</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="mi">32</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="n">gridConfiguration</span><span class="p">((</span><span class="kt">int</span><span class="p">)((</span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="p">),</span>
+<span class="w">                           </span><span class="p">(</span><span class="kt">int</span><span class="p">)((</span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="p">),</span>
+<span class="w">                            </span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">]));</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>We then launch the kernel with the appropriate arguments and launch-configuration parameters.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// calling function</span>
+<span class="w">    </span><span class="n">downsampling_ip_cuda</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                           </span><span class="n">blockConfiguration</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                                 </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                                 </span><span class="n">outputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                                 </span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                                 </span><span class="n">outputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Kernel launches to the default stream is blocking. Which means that the rest of the code is run only after the function has finished its processing. So the next line involves copying the results back to make it available in the host-side. This is followed by some maintenance functions.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// fetching data from device global-memory to device memory</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// shutting system down</span>
+<span class="w">    </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="final-cuda-code">
+<h3>Final CUDA Code<a class="headerlink" href="#final-cuda-code" title="Link to this heading">#</a></h3>
+<p>Putting together the CUDA code, we get the following</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm">    Aim: Implementing down-sampling with CUDA Kernel</span>
 <span class="cm">*/</span><span class="w"> </span>
@@ -575,6 +809,15 @@ where ( i ) and ( j ) are the coordinates in the downsampled image. This process
 </div>
 </section>
 </section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>MathWorks. “Phantom.” MATLAB Documentation, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/images/ref/phantom.html#d126e261153"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+<li><p>MathWorks. “mxCreateNumericArray.” MATLAB API Reference, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html?searchHighlight=mxcreatenumericarray&amp;s_tid=srchtitle_support_results_1_mxcreatenumericarray"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+<li><p>“Downsampling (Signal Processing).” Wikipedia: The Free Encyclopedia, Wikimedia Foundation, 26 Sept. 2024, <a class="reference external" href="http://en.wikipedia.org/wiki/Downsampling_(signal_processing)">en.wikipedia.org/wiki/Downsampling_(signal_processing)</a>. Accessed 26 Sept. 2024.</p></li>
+</ul>
+</section>
+</section>
 
     <script type="text/x-thebe-config">
     {
@@ -640,8 +883,17 @@ where ( i ) and ( j ) are the coordinates in the downsampled image. This process
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#full-matlab-code">Full Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel">Kernel</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#main">Main</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 

@@ -404,3 +404,4 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 ## Reference
 - MathWorks. “Phantom.” MATLAB Documentation, MathWorks, [Link](www.mathworks.com/help/images/ref/phantom.html#d126e261153). Accessed 26 Sept. 2024.
 - MathWorks. “mxCreateNumericArray.” MATLAB API Reference, MathWorks, [Link](www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html?searchHighlight=mxcreatenumericarray&s_tid=srchtitle_support_results_1_mxcreatenumericarray). Accessed 26 Sept. 2024.
+- “Upsampling.” Wikipedia: The Free Encyclopedia, Wikimedia Foundation, 26 Sept. 2024, en.wikipedia.org/wiki/Upsampling. Accessed 26 Sept. 2024.
