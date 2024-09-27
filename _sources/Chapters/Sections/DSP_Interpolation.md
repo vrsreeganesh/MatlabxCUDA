@@ -194,7 +194,7 @@ __global__ void upsample_cuda(double *d_inputPointerA,
 
 ```
 
-## Convolution Kernel
+### Convolution Kernel
 
 <!-- ======================================================================= -->
 The convolution kernel expects the following arguments
