@@ -40,3 +40,5 @@ chapters:
   - file: Chapters/Sections/Beamforming_FrequencyDomainBeamforming
   - file: Chapters/Sections/Beamforming_WindowedFrequencyDomainBeamforming
 - file: Chapters/ComputationalImaging
+- file: Chapters/Miscellaneous
+- file: Chapters/Contribution.md
