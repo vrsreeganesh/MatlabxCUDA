@@ -57,6 +57,8 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/DSP_Decimation';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -418,8 +420,17 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#decimation-kernel-definition">Decimation Kernel Definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -433,15 +444,77 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="decimation">
 <h1>Decimation<a class="headerlink" href="#decimation" title="Link to this heading">#</a></h1>
-<p>Decimation is a signal processing technique that reduces the sampling rate of a discrete-time signal by removing some of its samples and applying a low-pass filter to prevent aliasing. The primary goal of decimation is to decrease the amount of data while preserving the essential characteristics of the original signal. This process involves two main steps: filtering and downsampling. First, the signal is passed through a low-pass filter to limit its bandwidth and eliminate high-frequency components that could cause aliasing when the sampling rate is reduced. The filtered signal is then downsampled by a factor ( M ), which involves keeping every ( M )-th sample and discarding the rest. Mathematically, if ( x[n] ) is the original signal and ( h[n] ) is the impulse response of the low-pass filter, the decimated signal ( y[m] ) can be expressed as:
-[ y[m] = x[mM] ]
-where ( M ) is the decimation factor. The filtering step can be represented as:
-[ z[n] = (x * h)[n] = \sum_{k=-\infty}^{\infty} x[k] \cdot h[n-k] ]
-followed by downsampling:
-[ y[m] = z[mM] ]
-Decimation is widely used in various applications such as digital communications, audio signal processing, and data compression. In digital communication systems, decimation is employed to reduce the data rate of signals, making them more efficient for transmission and storage. For instance, in a digital radio receiver, the received signal might be decimated to match the sampling rate required by subsequent processing stages, such as demodulation and decoding. In audio signal processing, decimation is used to convert high-sample-rate audio recordings to lower sample rates for efficient storage and playback, while preserving the audio quality. For example, a studio-quality audio signal sampled at 96 kHz may be decimated to 48 kHz for distribution, which reduces the file size and data rate while maintaining sufficient audio fidelity. Decimation is also essential in multi-rate signal processing systems, where signals are processed at different sampling rates for various tasks, such as filtering, analysis, and synthesis.</p>
+<p>Decimation is a Signal Processing technique that reduces the sampling-rate of a digital discrete-time signal by applying a low-pass filter before down-sampling. The primary rate of decimation is to decrease the amount of data while preserving the essential characteristics of the original signal.</p>
+<p>This process involves two stage: filtering and down-sampling. First, the signal is passed through a low-pass filter to limit its bandwidth and eliminate high-frequency components that would’ve caused aliasing when sampling-rate is reduced. The filtered signal is then downsampled. Mathematically,</p>
+<p>Mathematically, decimation is a two step process</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+x_{filtered} = \mathcal{F}^{-1}(H_{lowpass\_filter}(f) \cdot F_{input}(f))\\
+x_{decimated }(i, j) = x_{filtered}(i*n, j*n)
+\end{split}\]</div>
+<p>where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(F_{input}(f)\)</span> is the fourier transform of the input signal</p></li>
+<li><p><span class="math notranslate nohighlight">\(H_{lowpass\_filter}(f)\)</span> is the fourier transform of the anti-aliasing filter</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{F}^{-1}\)</span> denotes the inverse Fourier transform.</p></li>
+</ul>
+<p>Decimation is widely used in various applications such as digital communications, audio signal processing, and data compression. In digital communication systems, decimation is employed to reduce the data rate of signals, making them more efficient for transmission and storage. For instance, in a digital radio receiver, the received signal might be decimated to match the sampling rate required by subsequent processing stages, such as demodulation and decoding. In audio signal processing, decimation is used to convert high-sample-rate audio recordings to lower sample rates for efficient storage and playback, while preserving the audio quality. For example, a studio-quality audio signal sampled at 96 kHz may be decimated to 48 kHz for distribution, which reduces the file size and data rate while maintaining sufficient audio fidelity. Decimation is also essential in multi-rate signal processing systems, where signals are processed at different sampling rates for various tasks, such as filtering, analysis, and synthesis.</p>
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
 <section id="matlab-code">
 <h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<p>In the Matlab code, as usual, we proceed to do the following steps</p>
+<div style="margin-top: -3mm;"></div>
+<ol class="arabic simple">
+<li><p>Compile CUDA code</p></li>
+<li><p>Setup the arguments</p></li>
+<li><p>Function call</p></li>
+<li><p>Exhibit results</p></li>
+</ol>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Compiling Code</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">decimate_cuda.cu</span><span class="p">;</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we prepare the arguments to the function. First, we decide on the sampling-factor. Then, we setup a signal that contains primarily two frequencies:  20Hz and 6000Hz. This is used to demonstrate low-pass filtering. So such wide frequency components makes it easier to see the differences. After the signal creation, we create a low-pass filter, which is necessary before down-sampling. For the low-pass filter, we use a simple FIR, low-pass filter of order,11.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Preparing Inputs</span>
+<span class="n">samplingFactor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="n">samplingFrequency</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">16000</span><span class="p">;</span>
+<span class="n">timeArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">0</span><span class="p">:(</span><span class="mi">1</span><span class="o">/</span><span class="n">samplingFrequency</span><span class="p">):</span><span class="mi">1</span><span class="p">;</span>
+<span class="n">frequency0</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">20</span><span class="p">;</span><span class="w"> </span><span class="n">frequency1</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">6000</span><span class="p">;</span>
+<span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">pi</span><span class="o">*</span><span class="n">frequency0</span><span class="o">*</span><span class="n">timeArray</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">pi</span><span class="o">*</span><span class="n">frequency1</span><span class="o">*</span><span class="n">timeArray</span><span class="p">);</span>
+<span class="n">inputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">inputArray</span><span class="p">(:);</span>
+
+<span class="c">% design filter</span>
+<span class="n">filter_order</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">11</span><span class="p">;</span>
+<span class="n">filter_cutoff</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">0.5</span><span class="p">;</span>
+<span class="n">filter_window</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">hamming</span><span class="p">(</span><span class="n">filter_order</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+<span class="n">filterKernel</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">fir1</span><span class="p">(</span><span class="n">filter_order</span><span class="p">,</span><span class="w"> </span><span class="n">filter_cutoff</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;low&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">filter_window</span><span class="p">);</span>
+<span class="n">filterKernel</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">filterKernel</span><span class="p">(:);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we call the function, receive the output and present the before and after.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Calling Function</span>
+<span class="n">outputArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">decimate_cuda</span><span class="p">(</span><span class="n">inputArray</span><span class="p">,</span><span class="w"> </span><span class="n">filterKernel</span><span class="p">,</span><span class="n">samplingFactor</span><span class="p">);</span>
+
+<span class="c">%% Plotting Results</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">inputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Input Signal&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">outputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Filtered and decimated Signal&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<section id="final-matlab-code">
+<h3>Final Matlab Code<a class="headerlink" href="#final-matlab-code" title="Link to this heading">#</a></h3>
+<p>Putting it all together, we should get the following</p>
 <div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">Aim: Demonstrating CUDA code for decimation</span>
 <span class="cm">%}</span>
@@ -476,9 +549,265 @@ Decimation is widely used in various applications such as digital communications
 <span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">outputArray</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Filtered and decimated Signal&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+</section>
 </section>
 <section id="cuda-code">
 <h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
+<p>For the CUDA code, we define two functions: gateway function and decimation kernel. The decimation kernel is a more optimized combination of convolution and decimation. Instead of doing it sequentially, we first identify the samples that will be maintained after down-samplign and just find the convolution result of that particular index. This allows us to avoid finding the convolution result of samples that will be thrown out.</p>
+<section id="decimation-kernel-definition">
+<h3>Decimation Kernel Definition<a class="headerlink" href="#decimation-kernel-definition" title="Link to this heading">#</a></h3>
+<!-- ======================================================================= -->
+<p>The kernel takes in the following sets of inputs</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// kernel</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">conv</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                     </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerB</span><span class="p">,</span>
+<span class="w">                     </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                     </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                     </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">,</span>
+<span class="w">                     </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsB</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Since our code uses shared-memory, the pointer to the memory needs to be declared. And since the kernel-size cannot be known before hand, we use dynamic shared-memory for this task.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// shared memory</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we setup some parameters that are required for the computation of the convolution. The are</p>
+<ol class="arabic simple">
+<li><p><em>inputLength</em>: the length of the input-signal</p></li>
+<li><p><em>indexAssignedToBlock</em>: The index of input that the current block is responsible for</p></li>
+<li><p><em>indicesOfKernelUtilized</em>: The index up to whos values are considered to find the output for the current output-index.</p></li>
+</ol>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// length of input-array</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"> </span>
+
+<span class="w">    </span><span class="c1">// the index for which we&#39;re calculating the result for</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">indexAssignedToBlock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">);</span><span class="w"> </span>
+
+<span class="w">    </span><span class="c1">// the farthest index from the index, for which this block is calculating dot product for</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">indicesOfKernelUtilized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span><span class="w"> </span>
+<span class="w">    </span><span class="n">indicesOfKernelUtilized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">min</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">indicesOfKernelUtilized</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we check if the inner-product the current thread is calculating is within the bound of the input-array. Note that this is expected and thus, we need a test, because it is often the case that the number of threadss allocated is greater than the number of elements. After checking validity, we find the index assigned to this thread. The validity of this is also tested. And if it is valid, their element-wise product is calculated and stored into the shared-memory. If it is not valid, we store zero so that the accumulation operation does not work with corrupted values that will end up in wrong results. After accumulation, the first thread of each block is assigned to accumulate the values of the shared-memory of that block. And since each block is assigned the responsibility for each output-index, this results in the value to be stored at that particular output-index. So, the accumulated value is stored into the output-array in the global memory.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// checking if the value for which we&#39;re calculating convolution is within the bound of the input array</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">indexAssignedToBlock</span><span class="o">&lt;</span><span class="n">inputLength</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// finding index assigned to this particular thread</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">indexAssignedToThisThread</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">indexAssignedToBlock</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// checking if the thread assigned to this </span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">indexAssignedToThisThread</span><span class="w"> </span><span class="o">&gt;=</span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">indexAssignedToThisThread</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">inputLength</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// saving value to the shared memory</span>
+<span class="w">            </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">indexAssignedToThisThread</span><span class="p">]</span><span class="o">*</span>
+<span class="w">                                        </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerB</span><span class="p">[</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// if it is not within the scope, assign a zero to the index</span>
+<span class="w">            </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// syncing the threads within the block</span>
+<span class="w">        </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// assigning the first thread to take care of the addition</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span><span class="w">       </span>
+<span class="w">            </span><span class="c1">// the variable to hold the accumulation results</span>
+<span class="w">            </span><span class="kt">double</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">            </span><span class="c1">// Summing up the values stored in the shared memory</span>
+<span class="w">            </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;</span><span class="n">indicesOfKernelUtilized</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">sharedMem</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// copying the shared-memory into the value</span>
+<span class="w">            </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accusum</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Putting it together, the convolution kernel-definition should look like the following</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// kernel</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">conv</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerB</span><span class="p">,</span>
+<span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">,</span>
+<span class="w">                        </span><span class="k">const</span><span class="w"> </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsB</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// shared memory</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+
+<span class="w">    </span><span class="c1">// length of input-array</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"> </span>
+
+<span class="w">    </span><span class="c1">// the index for which we&#39;re calculating the result for</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">indexAssignedToBlock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">);</span><span class="w"> </span>
+
+<span class="w">    </span><span class="c1">// the farthest index from the index, for which this block is calculating dot product for</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">indicesOfKernelUtilized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span><span class="w"> </span>
+<span class="w">    </span><span class="n">indicesOfKernelUtilized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">min</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">indicesOfKernelUtilized</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensionsB</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// checking if the value for which we&#39;re calculating convolution is within the bound of the input array</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">indexAssignedToBlock</span><span class="o">&lt;</span><span class="n">inputLength</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// finding index assigned to this particular thread</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">indexAssignedToThisThread</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">indexAssignedToBlock</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">        </span><span class="c1">// checking if the thread assigned to this </span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">indexAssignedToThisThread</span><span class="w"> </span><span class="o">&gt;=</span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">indexAssignedToThisThread</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">inputLength</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// saving value to the shared memory</span>
+<span class="w">            </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">indexAssignedToThisThread</span><span class="p">]</span><span class="o">*</span>
+<span class="w">                                        </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputPointerB</span><span class="p">[</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// if it is not within the scope, assign a zero to the index</span>
+<span class="w">            </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// syncing the threads within the block</span>
+<span class="w">        </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// assigning the first thread to take care of the addition</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span><span class="w">       </span>
+<span class="w">            </span><span class="c1">// the variable to hold the accumulation results</span>
+<span class="w">            </span><span class="kt">double</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">            </span><span class="c1">// Summing up the values stored in the shared memory</span>
+<span class="w">            </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;</span><span class="n">indicesOfKernelUtilized</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">accusum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accusum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">sharedMem</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// copying the shared-memory into the value</span>
+<span class="w">            </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accusum</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="gateway-function">
+<h3>Gateway Function<a class="headerlink" href="#gateway-function" title="Link to this heading">#</a></h3>
+<!-- ======================================================================= -->
+<p>The first stage in the gateway function is check the validity of the inputs. We check the number of inputs, expected number of outputs and the data-type of the inputs. This si done in the following manner</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// mex-function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// check number of inputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrhs</span><span class="o">!=</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The Number of Inputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// check number of outputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of expected outputs are wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// check data-types</span>
+<span class="w">    </span><span class="cm">/*</span>
+<span class="cm">        first argument: input array</span>
+<span class="cm">        second argument: input kernel</span>
+<span class="cm">        third argument: downsampling factor</span>
+<span class="cm">    */</span><span class="w"> </span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;First argument has the wrong data-type </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Second argument has the wrong data type </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="w"> </span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Third argument has the wrong data type </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Once the validity of the inputs have been checked, we encapsulate the inputs with objects of the class, <em>CustomGPUObject</em>. This data is the made available in the GPU global-memory using the class-method, <em>copyFromHostToDevice()</em>. Note that we do not use the class to encapsulate the sampling-factor because it is a scalar. One does not need to explicitly call CUDA-API calls to make scalars available in the GPU global-memory.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Fetching the Input Data</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">inputArray</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">kernelArray</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samplingFactor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">mxGetScalar</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// Transferring data to GPU</span>
+<span class="w">    </span><span class="n">inputArray</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">kernelArray</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we setup and calculate a number of parameters required for carrying out this transformation. They are</p>
+<ol class="arabic simple">
+<li><p><em>inputLength</em>: length of the input-array</p></li>
+<li><p><em>kernelLength</em>: length of the filter</p></li>
+<li><p><em>outputLength</em>: length of the final output signal</p></li>
+</ol>
+<p>We then use the function, <a class="reference external" href="https://www.mathworks.com/help/matlab/apiref/mxcreatenumericmatrix.html"><em>mxCreateNumericMatrix</em></a>, to create a matrix that will be used to store the output. The created matrix is then encapsulated using an object of the class, <em>CustomGPUObject</em>. We then allocate space in the GPU global-memory using the class-method, <em>copyFromHostToDevice()</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// setup output</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">inputArray</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">kernelLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">kernelArray</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">outputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)((</span><span class="n">inputLength</span><span class="o">+</span><span class="n">samplingFactor</span><span class="mi">-1</span><span class="p">)</span><span class="o">/</span><span class="n">samplingFactor</span><span class="p">);</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericMatrix</span><span class="p">(</span><span class="n">outputLength</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputArray</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputArray</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Now that the inputs and space for the output are available at the GPU global-memory, we shall now prepare for the kernel launch. The block-configuration paramter is set such that the number of threads in a block is the kernel-length. The grid-configuration is set such that the number of blocks in a grid is equal to the number of elements in the output. The kernel is then launched in the default stream using the launch-configuration parameters and the function arguments.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Function Calls</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="n">kernelLength</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridConfiguration</span><span class="p">(</span><span class="n">outputLength</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w">   </span>
+<span class="w">    </span><span class="n">conv</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span>
+<span class="w">            </span><span class="n">blockConfiguration</span><span class="p">,</span>
+<span class="w">            </span><span class="n">kernelLength</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                            </span><span class="n">kernelArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                            </span><span class="n">samplingFactor</span><span class="p">,</span>
+<span class="w">                                            </span><span class="n">outputArray</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                            </span><span class="n">inputArray</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                            </span><span class="n">kernelArray</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Kernel launches to the default stream is blocking, which means that the lines after this kernel launch is implemented only after the default stream has finished running. Thus, in the next line, we bring the output results from the device memory to the host memory using the class method, <em>copyFromDeviceToHost()</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Copying results from device to host</span>
+<span class="w">    </span><span class="n">outputArray</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="final-cuda-code">
+<h3>Final CUDA Code<a class="headerlink" href="#final-cuda-code" title="Link to this heading">#</a></h3>
+<!-- ======================================================================= -->
+<p>Putting it all together, we get the following</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// Aim: Perform decimation using cuda</span>
 
 <span class="c1">// headers </span>
@@ -499,9 +828,6 @@ Decimation is widely used in various applications such as digital communications
 
 <span class="w">    </span><span class="c1">// length of input-array</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inputLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"> </span>
-
-<span class="w">    </span><span class="c1">// factor by which we&#39;re sampling</span>
-<span class="w">    </span><span class="c1">// const int samplingFactor = (int)(d_inputPointerC[0]); </span>
 
 <span class="w">    </span><span class="c1">// the index for which we&#39;re calculating the result for</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">indexAssignedToBlock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">);</span><span class="w"> </span>
@@ -601,6 +927,7 @@ Decimation is widely used in various applications such as digital communications
 <span class="w">                                    </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span>
 <span class="w">                                    </span><span class="n">mxREAL</span><span class="p">);</span>
 <span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputArray</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputArray</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
 <span class="w">    </span>
 <span class="w">    </span><span class="c1">// Function Calls</span>
 <span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="n">kernelLength</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
@@ -624,6 +951,23 @@ Decimation is widely used in various applications such as digital communications
 <span class="p">}</span>
 </pre></div>
 </div>
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>MathWorks. “mxCreateNumericMatrix.” MATLAB API Reference, MathWorks, <a class="reference external" href="http://www.mathworks.com/help/matlab/apiref/mxcreatenumericmatrix.html">www.mathworks.com/help/matlab/apiref/mxcreatenumericmatrix.html</a>. Accessed 26 Sept. 2024.</p></li>
+<li><p>“Downsampling (Signal Processing).” Wikipedia: The Free Encyclopedia, Wikimedia Foundation, 26 Sept. 2024, <a class="reference external" href="http://en.wikipedia.org/wiki/Downsampling_(signal_processing)">en.wikipedia.org/wiki/Downsampling_(signal_processing)</a>. Accessed 26 Sept. 2024.</p></li>
+</ul>
 </section>
 </section>
 
@@ -691,8 +1035,17 @@ Decimation is widely used in various applications such as digital communications
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">Matlab Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#decimation-kernel-definition">Decimation Kernel Definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 
