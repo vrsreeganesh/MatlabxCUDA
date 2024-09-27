@@ -2,7 +2,7 @@
 
 Converting RGB(Red, Green, Blue) to YCbCr(Luminance, Blue-difference Chrominance, Red-difference Chrominance) is a common process in image and video compression. The RGB color format/model is often used for display purposes because it aligns well with the way the human eye perceives colours. 
 
-However, GB is not very efficient for certain tasks such as compressing images and videos because it does not separate the luminance information(brightness) from the chrominance information (colour), which is crucial for reducing data-size without significantly affecting visual quality. The YCbCR model separates thhe image into a luma component, *Y*,  and two chroma components (*Cb* and *Cr*), making it more suitable for compression algorithms used in standards like JPEG, MPEG and H.264. 
+However, RGB is not very efficient for certain tasks such as compressing images and videos because it does not separate the luminance information(brightness) from the chrominance information (colour), which is crucial for reducing data-size without significantly affecting visual quality. The YCbCR model separates thhe image into a luma component, *Y*,  and two chroma components (*Cb* and *Cr*), making it more suitable for compression algorithms used in standards like JPEG, MPEG and H.264. 
 
 So converting from one format to the other is rather important. Mathematically, the conversion is done in the following manner.
 
