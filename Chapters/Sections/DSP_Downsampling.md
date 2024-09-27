@@ -266,7 +266,7 @@ Calls to the default stream is blocking, which means that the lines after this c
 Putting it all together, we get the following result
 
 
-```C
+```C++
 // Aim: Building custom-kernel to down-sample code. 
 
 // header-files
