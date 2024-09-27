@@ -22,12 +22,12 @@ chapters:
 - file: Chapters/IntroductionToDynamicParallelism
 - file: Chapters/ImageProcessing
   sections:
+  - file: Chapters/Sections/Image_RGB2YCbCr
+  - file: Chapters/Sections/Image_YCbCr2RGB
   - file: Chapters/Sections/ImageUpsampling
   - file: Chapters/Sections/ImageDownsampling
   - file: Chapters/Sections/ImageDecimation
   - file: Chapters/Sections/ImageInterpolation
-  - file: Chapters/Sections/Image_RGB2YCbCr
-  - file: Chapters/Sections/Image_YCbCr2RGB
 - file: Chapters/DigitalSignalProcessing
   sections:
   - file: Chapters/Sections/DSP_Convolution
