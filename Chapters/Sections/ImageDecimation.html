@@ -444,7 +444,7 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="decimation">
 <h1>Decimation<a class="headerlink" href="#decimation" title="Link to this heading">#</a></h1>
-<p>Image decimation is a technique in Digital Image Processing where the size of a digital image is reduced while maintaing as much information as possible. This is different from downsampling where the samples in between are simply tossed out. In decimation, the image is processed before downsampling. This additional step is called anti-aliasing. Without this step, high-frequency information in the image could cause aliasing, where different signals become indistinguishable, leading to artifacts in the decimated image. The anti-aliasing filter is typically a low-pass filter that smooths the image by reducing high-frequency components.</p>
+<p>Image decimation is a technique in Digital Image Processing where the size of a digital image is reduced while maintaing the appearance. This is different from downsampling where the samples in between are simply tossed out. In decimation, the image is processed before downsampling. This additional step is called anti-aliasing. Without this step, high-frequency information in the image could cause aliasing, where different signals become indistinguishable, leading to artifacts in the decimated image. The anti-aliasing filter is typically a low-pass filter that smooths the image by reducing high-frequency components.</p>
 <p>Mathematically, decimation is a two step process</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
@@ -457,7 +457,10 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 <li><p><span class="math notranslate nohighlight">\(H_{lowpass\_filter}(f)\)</span> is the fourier transform of the anti-aliasing filter</p></li>
 <li><p><span class="math notranslate nohighlight">\(\mathcal{F}^{-1}\)</span> denotes the inverse Fourier transform.</p></li>
 </ul>
-<p>Decimation is used in various contexts such as video processing, where reducing the resolution of frames lowers the bandwidth needed for streaming, and in remote sensing, where it manages the vast data collected by satellite sensors for quicker analysis. In machine learning, particularly in image preprocessing for training models, decimation reduces the input image size, thereby speeding up the training process by lowering computational overhead while preserving essential features for recognition tasks.</p>
+<div style="margin-top: 4mm;"></div>
+Computationally, the first stage entails convolving the input-image with a filter that corresponds to that of an anti-aliasing filter. From the previous examples, which I hope you read, we know that convolution is a collaborative process. By which we mean that to produce the output at a particular index, we need multiple threads doing an element-wise multiplication followed by accumulation. Thus, this calls for the use of shared-memory. Note that since the kernel-matrix remains constant and is of a small size, using constant memory to store its values (which consequently results in high cache-hits when performing the operation) will increase the performance of this code. But for the sake of simplicity and acknowledging the fact that this book is written to introduce rather than show-off, we'll set aside the use of constant memory for now. But note that in these kind of contexts, its highly encouraged to use constant memory. 
+<div style="margin-top: 4mm;"></div>
+Decimation is used in various contexts such as video processing, where reducing the resolution of frames lowers the bandwidth needed for streaming, and in remote sensing, where it manages the vast data collected by satellite sensors for quicker analysis. In machine learning, particularly in image preprocessing for training models, decimation reduces the input image size, thereby speeding up the training process by lowering computational overhead while preserving essential features for recognition tasks.
 <!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
 <!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
 <!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
@@ -469,6 +472,7 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 <section id="matlab-code">
 <h2>MATLAB Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
 <p>In the Matlab code, as usual, we proceed to do the following steps</p>
+<div style="margin-top: -3mm;"></div>
 <ol class="arabic simple">
 <li><p>Compile CUDA code</p></li>
 <li><p>Setup the arguments</p></li>
@@ -476,12 +480,14 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 <li><p>Exhibit results</p></li>
 </ol>
 <!-- ======================================================================= -->
+<div style="margin-top: 4mm;"></div>
 <p>Before we prepare the arguments and call the function, the first step is to compile the CUDA code so that it produces the executable, which is what we’ll be calling from our code. Note that this does <strong>NOT</strong> need to be compiled before the function is to be called. Ideally, the function just needs to be compiled once its completed or any changes has been made. The compiling-line is thrown into the script purely for simplicity and is often a good practice when developing, as any errors would be immediately brought to your attention.</p>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Compiling Code</span>
 <span class="n">mexcuda</span><span class="w"> </span><span class="s">decimation_ip_cuda.cu</span>
 </pre></div>
 </div>
 <!-- ======================================================================= -->
+<div style="margin-top: 4mm;"></div>
 <p>To create the image argument, feel free to read in any image of your liking (3-channels) and feed it as the argument to the function. In our example, however, we use Matlab’s <em>phantom</em> function to generate an image. The function, essentially, generates a head-phantom that is often used to test the numerical accuracy of image reconstruction algorithms. Though not relevant to our task, this example uses it because my intention is to get you, the reader, to be able to run the code with minimal external dependencies. And the phantom function is available in the base library of Matlab. So, we stick to <em>phantom</em>. If this function piques your interest, feel free to read up more at <a class="reference external" href="https://www.mathworks.com/help/images/ref/phantom.html#d126e261153">phantom Matlab Documentation</a>. We also setup the sampling factor.</p>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Setting up Inputs</span>
 <span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">2048</span><span class="p">);</span>
@@ -489,6 +495,7 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
 <p>Next, we design the anti-aliasing filter. The anti-aliasing filter we’re designing here has a transition-bandwidth of 0.1, filter order = 31. We also design the code such that the end of the passband and the beginning of the stop band is symmetrical to the mid frequency. With those specifications, we create the filter with the function, <a class="reference external" href="https://www.mathworks.com/help/signal/ref/firpm.html"><em>firpm</em></a> which returns the parameters for <a class="reference external" href="https://en.wikipedia.org/wiki/Parks%E2%80%93McClellan_filter_design_algorithm">Parks-McClellan optimal FIR filter</a>. The function returns the filter for a 1D signal. We do the following operations so that it can be applied to 2D signals, that is images.</p>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Designing an anti-aliasing filter</span>
 <span class="n">transitionbandwidth</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">0.1</span><span class="p">;</span><span class="w">                           </span>
@@ -503,6 +510,7 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
 <p>Next, we call the CUDA function with the appropriate arguments and present the results side by side.</p>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Running Kernel</span>
 <span class="n">outputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">decimation_ip_cuda</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="n">inputKernel</span><span class="p">,</span><span class="w"> </span><span class="n">samplingFactor</span><span class="p">);</span>
@@ -570,6 +578,7 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 <section id="kernel-definition">
 <h3>Kernel Definition<a class="headerlink" href="#kernel-definition" title="Link to this heading">#</a></h3>
 <p>The decimation kernel has the following arguments</p>
+<div style="margin-top: -3mm;"></div>
 <ol class="arabic simple">
 <li><p>Pointer to input-image in the global-memory</p></li>
 <li><p>pointer to input-kernel in the global-memory</p></li>
@@ -594,13 +603,15 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
-<p>Since filtering is a collaborative processing, we use shared memory for this. For this code we’re using dynamic shared memory, so we declare the pointer we’ll be using to point to the shared-memory in the following manner</p>
+<div style="margin-top: 6mm;"></div>
+<p>Due to the collaborative nature of our process, we’ll be using shared-memory for this. We stick to using dynamic shared-memory. Here, we declare the pointer that will be used to point to the contents of the shared-memory.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// declaring shared memory</span>
 <span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
 </pre></div>
 </div>
 <!-- ======================================================================= -->
-<p>Next, we produce mapping from the thread-address to output-index that particular block is responsible for. This is followed by obtaining the linear-index for the same output-index. This is done in the following manner</p>
+<div style="margin-top: 6mm;"></div>
+<p>Next, we produce the mapping from the block-address to the data-address. Since each block(and consequently, the threads under it) is assigned the responsibility of producing the output for a pixel, the mapping from the blocks to the data-structure will reflect the same.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// Getting coordinates of the final Output</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
@@ -612,7 +623,8 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
-<p>Here, we calculate the input-index the current block is responsible for.</p>
+<div style="margin-top: 8mm;"></div>
+<p>Next, we produce the mapping that corresponds to the mapping from the block-address to the input-matrix address. This is done in the following manner.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Getting the coordinates of the pixel for which we wanna filter</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">samplingFactor</span><span class="p">;</span>
@@ -620,6 +632,8 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+<p>Next, we produce the mapping from each thread to the kernel-element that particular thread is responsible to carry out the element-wise product. Note that since the kernel is stored in a dynamic shared-memory pointer, it is linearised. Hence, we map from the thread-address to the linear-address of the element in the shared-memory.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Finding the coordinates of the kernel point</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
@@ -631,6 +645,8 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+<p>Next, we produce the mappings from the thread-address to the pixel neighbour the thread needs to process. This is done in the following manner. So each block carries out a dot-product calculation. Each thread is assigned the responsibility of producing an element-wise product. So in the previous section, we mapped the thread address to the kernel-element it is responsible for. In this section, we map the thread address to the input-element the thread is responsible for.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// The neighbour pixel this thread is responsible for</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx_input</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="p">;</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_neighbour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidy_input</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tidy_kernel</span><span class="p">;</span>
@@ -642,6 +658,8 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+<p>Now that we have both the input-element and the kernel-element to calculate the dot-product, we do that here. Note that we do some checking to ensure that the neighbours that were retrieved are valid. This is necessary because the same kernel is run by all the threads and not all pixels in an image have the same number of neighbours. So if the neighbours are valid, we calculate the element-wise product. ANd if it is not, we assign zero to the corresponding index in the shared-memory so that during the accumulation process, any junk value that might’ve existed doesn’t corrupt the final output.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Finding dot-product</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_neighbour</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
 <span class="w">        </span><span class="n">tidy_neighbour</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
@@ -664,6 +682,8 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+<p>Now that the shared-memory contains the element-wise product of the kernel elements and its corresponding pixel counter-parts, we need to add those values up to obtain the dot-product. While there are multiple ways to parallely accumulate the elements in an array, we stick to a simpler approach. We assign the responsibility of the thread with the address <em>(0,0,0)</em> to accummulate the contents of the shared-memory. So we first check to ensure that the other threads are not able to enter the body of this particular code segment. This is followed by accumulation. The result is then written to the output by the same thread.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Getting the first thread to add these values up</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
 <span class="w">    </span><span class="p">{</span>
@@ -690,7 +710,8 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 </pre></div>
 </div>
 <!-- ======================================================================= -->
-<p>Putting it together the kernel definition should look like this</p>
+<div style="margin-top: 8mm;"></div>
+<p>Putting it all together the kernel definition should look like this</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// global functions</span>
 <span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">decimation_ip_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
 <span class="w">                                   </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputKernel</span><span class="p">,</span>
@@ -810,7 +831,7 @@ I_{decimated }(i, j) = I_{filtered}(i*n, j*n)
 <span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The second argument is expected to be a matrix of type, double </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">mxIsComplex</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
 <span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The third argument is expected to be a matrix of type, double </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-<span class="w">    </span>
+
 <span class="w">    </span><span class="p">...</span>
 <span class="p">}</span>
 </pre></div>

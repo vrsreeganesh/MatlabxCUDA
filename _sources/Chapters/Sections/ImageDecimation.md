@@ -1,6 +1,6 @@
 # Decimation
 
-Image decimation is a technique in Digital Image Processing where the size of a digital image is reduced while maintaing as much information as possible. This is different from downsampling where the samples in between are simply tossed out. In decimation, the image is processed before downsampling. This additional step is called anti-aliasing. Without this step, high-frequency information in the image could cause aliasing, where different signals become indistinguishable, leading to artifacts in the decimated image. The anti-aliasing filter is typically a low-pass filter that smooths the image by reducing high-frequency components. 
+Image decimation is a technique in Digital Image Processing where the size of a digital image is reduced while maintaing the appearance. This is different from downsampling where the samples in between are simply tossed out. In decimation, the image is processed before downsampling. This additional step is called anti-aliasing. Without this step, high-frequency information in the image could cause aliasing, where different signals become indistinguishable, leading to artifacts in the decimated image. The anti-aliasing filter is typically a low-pass filter that smooths the image by reducing high-frequency components.
 
 Mathematically, decimation is a two step process 
 
@@ -14,7 +14,10 @@ where
 - $H_{lowpass\_filter}(f)$ is the fourier transform of the anti-aliasing filter
 - $\mathcal{F}^{-1}$ denotes the inverse Fourier transform. 
 
+<div style="margin-top: 4mm;"></div>
+Computationally, the first stage entails convolving the input-image with a filter that corresponds to that of an anti-aliasing filter. From the previous examples, which I hope you read, we know that convolution is a collaborative process. By which we mean that to produce the output at a particular index, we need multiple threads doing an element-wise multiplication followed by accumulation. Thus, this calls for the use of shared-memory. Note that since the kernel-matrix remains constant and is of a small size, using constant memory to store its values (which consequently results in high cache-hits when performing the operation) will increase the performance of this code. But for the sake of simplicity and acknowledging the fact that this book is written to introduce rather than show-off, we'll set aside the use of constant memory for now. But note that in these kind of contexts, its highly encouraged to use constant memory. 
 
+<div style="margin-top: 4mm;"></div>
 Decimation is used in various contexts such as video processing, where reducing the resolution of frames lowers the bandwidth needed for streaming, and in remote sensing, where it manages the vast data collected by satellite sensors for quicker analysis. In machine learning, particularly in image preprocessing for training models, decimation reduces the input image size, thereby speeding up the training process by lowering computational overhead while preserving essential features for recognition tasks.
 
 
@@ -29,12 +32,16 @@ Decimation is used in various contexts such as video processing, where reducing 
 <!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A= -->
 ## MATLAB Code
 In the Matlab code, as usual, we proceed to do the following steps
+<div style="margin-top: -3mm;"></div>
+
 1. Compile CUDA code
 2. Setup the arguments
 3. Function call
 4. Exhibit results
 
 <!-- ======================================================================= -->
+<div style="margin-top: 4mm;"></div>
+
 Before we prepare the arguments and call the function, the first step is to compile the CUDA code so that it produces the executable, which is what we'll be calling from our code. Note that this does **NOT** need to be compiled before the function is to be called. Ideally, the function just needs to be compiled once its completed or any changes has been made. The compiling-line is thrown into the script purely for simplicity and is often a good practice when developing, as any errors would be immediately brought to your attention.
 
 ```Matlab
@@ -42,7 +49,10 @@ Before we prepare the arguments and call the function, the first step is to comp
 mexcuda decimation_ip_cuda.cu
 ```
 <!-- ======================================================================= -->
+<div style="margin-top: 4mm;"></div>
+
 To create the image argument, feel free to read in any image of your liking (3-channels) and feed it as the argument to the function. In our example, however, we use Matlab's *phantom* function to generate an image. The function, essentially, generates a head-phantom that is often used to test the numerical accuracy of image reconstruction algorithms. Though not relevant to our task, this example uses it because my intention is to get you, the reader, to be able to run the code with minimal external dependencies. And the phantom function is available in the base library of Matlab. So, we stick to *phantom*. If this function piques your interest, feel free to read up more at [phantom Matlab Documentation](https://www.mathworks.com/help/images/ref/phantom.html#d126e261153). We also setup the sampling factor. 
+
 ```Matlab
 %% Setting up Inputs
 inputImage = phantom(2048);
@@ -51,6 +61,8 @@ samplingFactor = 4;
 
 
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+
 Next, we design the anti-aliasing filter. The anti-aliasing filter we're designing here has a transition-bandwidth of 0.1, filter order = 31. We also design the code such that the end of the passband and the beginning of the stop band is symmetrical to the mid frequency. With those specifications, we create the filter with the function, [*firpm*](https://www.mathworks.com/help/signal/ref/firpm.html) which returns the parameters for [Parks-McClellan optimal FIR filter](https://en.wikipedia.org/wiki/Parks–McClellan_filter_design_algorithm). The function returns the filter for a 1D signal. We do the following operations so that it can be applied to 2D signals, that is images. 
 ```Matlab
 %% Designing an anti-aliasing filter
@@ -67,6 +79,9 @@ inputKernel = repmat(filtercoefficients, [length(filtercoefficients), 1]) .* rep
 ```
 
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+
+
 Next, we call the CUDA function with the appropriate arguments and present the results side by side. 
 ```Matlab
 %% Running Kernel
@@ -136,6 +151,9 @@ Thus, we're assuming each block to each output-pixel since the threads under the
 
 ### Kernel Definition
 The decimation kernel has the following arguments
+<div style="margin-top: -3mm;"></div>
+
+
 1. Pointer to input-image in the global-memory
 2. pointer to input-kernel in the global-memory
 3. sampling-factor
@@ -159,14 +177,18 @@ __global__ void decimation_ip_cuda(double *d_inputPointerA,
 ```
 
 <!-- ======================================================================= -->
-Since filtering is a collaborative processing, we use shared memory for this. For this code we're using dynamic shared memory, so we declare the pointer we'll be using to point to the shared-memory in the following manner
+<div style="margin-top: 6mm;"></div>
+
+Due to the collaborative nature of our process, we'll be using shared-memory for this. We stick to using dynamic shared-memory. Here, we declare the pointer that will be used to point to the contents of the shared-memory. 
 ```C
     // declaring shared memory
     extern __shared__ double sharedMem[];
 ```
 
 <!-- ======================================================================= -->
-Next, we produce mapping from the thread-address to output-index that particular block is responsible for. This is followed by obtaining the linear-index for the same output-index. This is done in the following manner
+<div style="margin-top: 6mm;"></div>
+
+Next, we produce the mapping from the block-address to the data-address. Since each block(and consequently, the threads under it) is assigned the responsibility of producing the output for a pixel, the mapping from the blocks to the data-structure will reflect the same. 
 ```C
 // Getting coordinates of the final Output
     const int tidx = blockIdx.x;
@@ -176,11 +198,14 @@ Next, we produce mapping from the thread-address to output-index that particular
                 tidx + \
                 tidy*d_outputDimensions[0] + \
                 tidz*d_outputDimensions[0]*d_outputDimensions[1];
-
 ```
 
 <!-- ======================================================================= -->
-Here, we calculate the input-index the current block is responsible for. 
+<div style="margin-top: 8mm;"></div>
+
+
+Next, we produce the mapping that corresponds to the mapping from the block-address to the input-matrix address. This is done in the following manner.
+
 ```C
     // Getting the coordinates of the pixel for which we wanna filter
     const int tidx_input = tidx*samplingFactor;
@@ -189,6 +214,9 @@ Here, we calculate the input-index the current block is responsible for.
 ```
 
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+
+Next, we produce the mapping from each thread to the kernel-element that particular thread is responsible to carry out the element-wise product. Note that since the kernel is stored in a dynamic shared-memory pointer, it is linearised. Hence, we map from the thread-address to the linear-address of the element in the shared-memory. 
 
 ```C
     // Finding the coordinates of the kernel point
@@ -202,6 +230,9 @@ Here, we calculate the input-index the current block is responsible for.
 ```
 
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+
+Next, we produce the mappings from the thread-address to the pixel neighbour the thread needs to process. This is done in the following manner. So each block carries out a dot-product calculation. Each thread is assigned the responsibility of producing an element-wise product. So in the previous section, we mapped the thread address to the kernel-element it is responsible for. In this section, we map the thread address to the input-element the thread is responsible for. 
 
 ```C
     // The neighbour pixel this thread is responsible for
@@ -215,6 +246,9 @@ Here, we calculate the input-index the current block is responsible for.
 ```
 
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+
+Now that we have both the input-element and the kernel-element to calculate the dot-product, we do that here. Note that we do some checking to ensure that the neighbours that were retrieved are valid. This is necessary because the same kernel is run by all the threads and not all pixels in an image have the same number of neighbours. So if the neighbours are valid, we calculate the element-wise product. ANd if it is not, we assign zero to the corresponding index in the shared-memory so that during the accumulation process, any junk value that might've existed doesn't corrupt the final output. 
 
 ```C
     // Finding dot-product
@@ -241,6 +275,9 @@ Here, we calculate the input-index the current block is responsible for.
 ```
 
 <!-- ======================================================================= -->
+<div style="margin-top: 8mm;"></div>
+
+Now that the shared-memory contains the element-wise product of the kernel elements and its corresponding pixel counter-parts, we need to add those values up to obtain the dot-product. While there are multiple ways to parallely accumulate the elements in an array, we stick to a simpler approach. We assign the responsibility of the thread with the address *(0,0,0)* to accummulate the contents of the shared-memory. So we first check to ensure that the other threads are not able to enter the body of this particular code segment. This is followed by accumulation. The result is then written to the output by the same thread. 
 
 ```C
     // Getting the first thread to add these values up
@@ -269,7 +306,11 @@ Here, we calculate the input-index the current block is responsible for.
 ```
 
 <!-- ======================================================================= -->
-Putting it together the kernel definition should look like this
+<div style="margin-top: 8mm;"></div>
+
+
+
+Putting it all together the kernel definition should look like this
 ```C
 // global functions
 __global__ void decimation_ip_cuda(double *d_inputPointerA,
@@ -392,12 +433,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("The second argument is expected to be a matrix of type, double \n");
     if(!mxIsDouble(prhs[2]) || mxIsComplex(prhs[2]))
         mexErrMsgTxt("The third argument is expected to be a matrix of type, double \n");
-    
+
     ...
 }
 ```
 
 <!-- ======================================================================= -->
+
+
 Once the input-data's validity has been established, next we setup the arguments to its appropriate data-structures. The input-image and the kernel-matrix are initialised to objects of the structure, *CustomGPUObject*. Note that we do not use an object of the mentioned class to store the sampling factor because to send scalars to the global-memory, we do not require CUDA API calls. Once the inputs have been setup, we send the input-image and kernel-matrix to the device global-memory using the class method, *copyFromHostDevice()*. 
 ```C
     // Fetching Inputs
@@ -411,6 +454,7 @@ Once the input-data's validity has been established, next we setup the arguments
 ```
 
 <!-- ======================================================================= -->
+
 Next, we setup the output-dimensions. Since the output is a decimated image, the output-image will have dimensions of the original image divided by the sampling-factor. 
 ```C
     // setting up output dimension
