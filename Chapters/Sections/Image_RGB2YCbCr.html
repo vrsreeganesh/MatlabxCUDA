@@ -420,8 +420,17 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda">CUDA</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-function">Kernel-Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway-Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -435,15 +444,73 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="rgb-to-ycbcr">
 <h1>RGB to YCbCr<a class="headerlink" href="#rgb-to-ycbcr" title="Link to this heading">#</a></h1>
-<p>Converting RGB (Red, Green, Blue) to YCbCr (Luminance, Blue-difference Chrominance, Red-difference Chrominance) is a common process in image and video compression. The RGB color model is often used for display purposes because it aligns well with the way human eyes perceive colors. However, RGB is not very efficient for compressing images and videos because it does not separate the luminance information (brightness) from the chrominance information (color), which is crucial for reducing data size without significantly affecting visual quality. The YCbCr model separates the image into a luma component (Y) and two chroma components (Cb and Cr), making it more suitable for compression algorithms used in standards like JPEG, MPEG, and H.264. The conversion from RGB to YCbCr can be expressed using the following equations:
-$<span class="math notranslate nohighlight">\(
-	Y &amp;= 0.299R + 0.587G + 0.114B \\
-	Cb &amp;= 128 - 0.168736R - 0.331264G + 0.5B \\
-	Cr &amp;= 128 + 0.5R - 0.418688G - 0.081312B	
-\)</span>$</p>
+<p>Converting RGB(Red, Green, Blue) to YCbCr(Luminance, Blue-difference Chrominance, Red-difference Chrominance) is a common process in image and video compression. The RGB color format/model is often used for display purposes because it aligns well with the way the human eye perceives colours.</p>
+<p>However, GB is not very efficient for certain tasks such as compressing images and videos because it does not separate the luminance information(brightness) from the chrominance information (colour), which is crucial for reducing data-size without significantly affecting visual quality. The YCbCR model separates thhe image into a luma component, <em>Y</em>,  and two chroma components (<em>Cb</em> and <em>Cr</em>), making it more suitable for compression algorithms used in standards like JPEG, MPEG and H.264.</p>
+<p>So converting from one format to the other is rather important. Mathematically, the conversion is done in the following manner.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+Y = 0.299R + 0.587G + 0.114B \\
+Cb = 128 - 0.168736R - 0.331264G + 0.5B \\
+Cr = 128 + 0.5R - 0.418688G - 0.081312B	
+\end{split}\]</div>
 <p>In these equations, the coefficients reflect the contribution of each RGB component to the Y, Cb, and Cr values, and the addition of 128 centers the chroma components around 128 to allow for both positive and negative values within an 8-bit range (0-255). This separation allows for more efficient compression because the human eye is more sensitive to changes in luminance than in chrominance. As a result, chrominance components can be subsampled, reducing the amount of data needed without perceptible loss of quality. This principle is widely used in various applications, including digital television, DVDs, and many streaming services, where efficient compression is essential for storage and transmission.</p>
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
 <section id="matlab-code">
 <h2>MATLAB Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<!-- ======================================================================= -->
+<p>Before we prepare the arguments and call the function, the first step is to compile the CUDA code so that it produces the executable, which is what we’ll be calling from our code. Note that this does <strong>NOT</strong> need to be compiled before the function is to be called. Ideally, the function just needs to be compiled once its completed or any changes has been made. The compiling-line is thrown into the script purely for simplicity and is often a good practice when developing, as any errors would be immediately brought to your attention.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Compiling</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">RGB2YCbCr_cuda.cu</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>To create the image argument, feel free to read in any image of your liking (3-channels) and feed it as the argument to the function. In our example, however, we use Matlab’s <em>phantom</em> function to generate an image. The function, essentially, generates a head-phantom that is often used to test the numerical accuracy of image reconstruction algorithms. Though not relevant to our task, this example uses it because my intention is to get you, the reader, to be able to run the code with minimal external dependencies. And the phantom function is available in the base library of Matlab. So, we stick to <em>phantom</em>. If this function piques your interest, feel free to read up more at <a class="reference external" href="https://www.mathworks.com/help/images/ref/phantom.html#d126e261153">phantom Matlab Documentation</a>.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Preparing Arguments</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">256</span><span class="p">);</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">repmat</span><span class="p">(</span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we call the Matlab’s built-in function that converts RGB to YCbCr, <a class="reference internal" href="#www.mathworks.com/help/images/ref/rgb2ycbcr.html"><span class="xref myst"><em>rgb2ycbcr</em></span></a>. This function helps us verify the output of our method. So we also call this function.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="n">matlabYCbCr</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">rgb2ycbcr</span><span class="p">(</span><span class="n">inputImage</span><span class="p">);</span>
+<span class="n">matlabRGB</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">ycbcr2rgb</span><span class="p">(</span><span class="n">matlabYCbCr</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we call the function with the prepared/read input in the following manner.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Calling the Function</span>
+<span class="n">outputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">RGB2YCbCr_cuda</span><span class="p">(</span><span class="n">inputImage</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Once the output has been created, we use another Matlab function, <a class="reference external" href="https://www.mathworks.com/help/images/ref/ycbcr2rgb.html"><em>ycbcr2rgb</em></a>. This is also used to verify the output of our function.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Converting the image back to RGB to check if we&#39;ve done a good job</span>
+<span class="n">rgbOutputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">ycbcr2rgb</span><span class="p">(</span><span class="n">outputImage</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Finally, we visualize the output and other plots relevant to verify the output.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Plotting the Image</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">imshow</span><span class="p">(</span><span class="n">outputImage</span><span class="p">(:,:,</span><span class="mi">1</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Y-cuda&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">imshow</span><span class="p">(</span><span class="n">outputImage</span><span class="p">(:,:,</span><span class="mi">2</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Cb-cuda&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">);</span><span class="w"> </span><span class="nb">imshow</span><span class="p">(</span><span class="n">outputImage</span><span class="p">(:,:,</span><span class="mi">3</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Cr-cuda&quot;</span><span class="p">);</span>
+
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">);</span><span class="w"> </span><span class="nb">imshow</span><span class="p">(</span><span class="n">matlabYCbCr</span><span class="p">(:,:,</span><span class="mi">1</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Y-matlab&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">);</span><span class="w"> </span><span class="nb">imshow</span><span class="p">(</span><span class="n">matlabYCbCr</span><span class="p">(:,:,</span><span class="mi">2</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Cb-matlab&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">);</span><span class="w"> </span><span class="nb">imshow</span><span class="p">(</span><span class="n">matlabYCbCr</span><span class="p">(:,:,</span><span class="mi">3</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Cr-matlab&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<section id="final-matlab-code">
+<h3>Final Matlab Code<a class="headerlink" href="#final-matlab-code" title="Link to this heading">#</a></h3>
+<p>Putting it together, we get the following</p>
 <div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">    Aim: RGB to YCbCr</span>
 <span class="cm">%}</span>
@@ -478,9 +545,182 @@ $<span class="math notranslate nohighlight">\(
 <span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">);</span><span class="w"> </span><span class="nb">imshow</span><span class="p">(</span><span class="n">matlabYCbCr</span><span class="p">(:,:,</span><span class="mi">3</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Cr-matlab&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
 </section>
-<section id="cuda-code">
-<h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
+</section>
+<section id="cuda">
+<h2>CUDA<a class="headerlink" href="#cuda" title="Link to this heading">#</a></h2>
+<p>For the CUDA part, we need to define two different function bodies: the kernel-definition and the entry-gateway function.</p>
+<section id="kernel-function">
+<h3>Kernel-Function<a class="headerlink" href="#kernel-function" title="Link to this heading">#</a></h3>
+<p>The kernel function takes in the following set of arguments.</p>
+<div style="margin-top: -3mm;"></div>
+<ol class="arabic simple">
+<li><p>The pointer to the input-matrix in the GPU global-memory.</p></li>
+<li><p>The pointer to the space allocated for the output in the GPU global-memory.</p></li>
+<li><p>The pointer to the array containing the dimensions of the input-matrix</p></li>
+</ol>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// global kernels</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">RGB2YCbCr_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                               </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we produce the mapping from the thread-address to the linear-index of the input-matrix.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Addressing the pixels</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                              </span><span class="n">tidy</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we calculate the three different components. We use the expressions presented before to calculate this. Before we do that, we check the validity of the threads to ensure that we’re not performing processing on memory-locations that are invalid.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// Checking Validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">tidy</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Calculating Y</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.2126</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.7152</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.0722</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]];</span>
+
+<span class="w">        </span><span class="c1">// Calculating Cb</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.1146</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.3854</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]];</span>
+
+<span class="w">        </span><span class="c1">// Calculating Cr</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.4542</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.0458</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]];</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Putting it together, the kernel definition must look like the following.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// global kernels</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">RGB2YCbCr_cuda</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">,</span>
+<span class="w">                               </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                               </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Addressing the pixels</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                              </span><span class="n">tidy</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// Checking Validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">tidy</span><span class="o">&lt;</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Calculating Y</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.2126</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.7152</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.0722</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]];</span>
+
+<span class="w">        </span><span class="c1">// Calculating Cb</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.1146</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.3854</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]];</span>
+
+<span class="w">        </span><span class="c1">// Calculating Cr</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.4542</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="mf">-0.0458</span><span class="p">)</span><span class="o">*</span><span class="n">d_inputPointerA</span><span class="p">[</span><span class="n">linearIndex2D</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensionsA</span><span class="p">[</span><span class="mi">1</span><span class="p">]];</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C -->
+<!-- C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C -->
+<!-- C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C -->
+<!-- C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C=C -->
+</section>
+<section id="gateway-function">
+<h3>Gateway-Function<a class="headerlink" href="#gateway-function" title="Link to this heading">#</a></h3>
+<p>In the gateway function, we first check the validity of the arguments that are passed from the Matlab script that called this kernel. We check the number of inputs, the expected number of outputs and the data-type of the input.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// main function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// checking number of inputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Inputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// checking number of outputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Expected Outputs are Wrong </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// checking input data type</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">mxIsDouble</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;The Input Data Should be of type, double </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Once the inputs have been checked and verified to be valid, we use an object of the class, <em>CustomGPUObject</em> to encapsulate the input. We then make the data-structure available in the GPU global-memory space.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Fetching Inputs</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">inputImage</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">inputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we create a Matlab matrix that will be used to store the output. So the first step is to create a matrix, using <a class="reference external" href="https://www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html?searchHighlight=mxcreatenumericarray&amp;amp;s_tid=srchtitle_support_results_1_mxcreatenumericarray"><em>mxCreateNumericArray</em></a>, that has the same dimensions of that of the input since the conversion form RGB to YCbCr doesn’t change the dimensionality of the matrix. The created matrix is then encapsulated with the help of an object of the class, <em>CustomGPUObject</em>. This allows easier control of the data-structure throguh the class methods. Once this has been allocated, call the class method, <em>copyFromHostToDevice()</em>. This function allocates space for the output in the GPU global-memory.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Creating output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">numDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span>
+<span class="w">                                   </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputImage</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Once the output has been created, we setup the launch-configuration parameters. The task of converting an image from RGB to YCbCr has a straight-forward mapping for the threads. THis means that the launnch-configuration is also rather straight-forward. We fix the block size to be <em>(32,32)</em> and the grid-configuration is chosen in such a way that the number of threads along each dimension is greater than or equal to the number of pixels along each-dimension. Once the launch-configuration parameters have been setup, we launch the kernels into the default stream with the launch-configuration parameters and the function arguments in the following manner.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Prepping for function call</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="mi">32</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="n">gridConfiguration</span><span class="p">((</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">x</span><span class="p">,</span>
+<span class="w">                           </span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">blockConfiguration</span><span class="p">.</span><span class="n">y</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">inputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">]));</span>
+<span class="w">    </span><span class="n">RGB2YCbCr_cuda</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span>
+<span class="w">                     </span><span class="n">blockConfiguration</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                           </span><span class="n">outputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                           </span><span class="n">inputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>After the function call, the results of the outputs are made available in the host-memory using the class method, <em>copyFromDeviceToHost()</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Getting data back from device global-memory to host-memory</span>
+<span class="w">    </span><span class="n">outputImage</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// shutting</span>
+<span class="w">    </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="final-cuda-code">
+<h3>Final CUDA Code<a class="headerlink" href="#final-cuda-code" title="Link to this heading">#</a></h3>
+<!-- ======================================================================= -->
+<p>Putting together the kernel-definition and gateway-function, we obtain the following.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm">    Aim: Creating Custom CUDA Kernels converting RGB to YCbCr</span>
 <span class="cm">*/</span><span class="w"> </span>
@@ -571,6 +811,23 @@ $<span class="math notranslate nohighlight">\(
 <span class="p">}</span>
 </pre></div>
 </div>
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+<!-- A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A=A -->
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>MathWorks. “rgb2ycbcr.” MATLAB Documentation, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/images/ref/rgb2ycbcr.html"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+<li><p>MathWorks. “ycbcr2rgb.” MATLAB Documentation, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/images/ref/ycbcr2rgb.html"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+<li><p>MathWorks. “mxCreateNumericArray.” MATLAB API Reference, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html?searchHighlight=mxcreatenumericarray&amp;s_tid=srchtitle_support_results_1_mxcreatenumericarray"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+</ul>
 </section>
 </section>
 
@@ -638,8 +895,17 @@ $<span class="math notranslate nohighlight">\(
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda">CUDA</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-function">Kernel-Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway-Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 
