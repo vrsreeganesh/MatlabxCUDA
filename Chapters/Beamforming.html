@@ -57,10 +57,12 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Beamforming';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Frequency Domain Beamforming" href="Sections/Beamforming_FrequencyDomainBeamforming.html" />
+    <link rel="next" title="Narrowband Beamformer" href="Sections/Beamforming_FrequencyDomainBeamforming.html" />
     <link rel="prev" title="Interpolation" href="Sections/DSP_Interpolation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -216,7 +218,7 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Beamforming</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="Sections/Beamforming_FrequencyDomainBeamforming.html">Frequency Domain Beamforming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Sections/Beamforming_FrequencyDomainBeamforming.html">Narrowband Beamformer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Sections/Beamforming_WindowedFrequencyDomainBeamforming.html">Frequency Domain Beamforming with Sensor-Weighing</a></li>
 </ul>
 </details></li>
@@ -431,15 +433,68 @@ document.write(`
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="beamforming">
-<h1><a class="reference external" href="https://en.wikipedia.org/wiki/Beamforming">Beamforming</a><a class="headerlink" href="#beamforming" title="Link to this heading">#</a></h1>
+<h1>Beamforming<a class="headerlink" href="#beamforming" title="Link to this heading">#</a></h1>
 <p>Beamforming is a signal processing technique that originates from the design of spatial filters into pencil shaped beams to strengthen signals in a specified direction and attenuate signals from other directions. Beamforming is applicable to either radiation or reception of energy. Here, we consider the reception part. A beamformer is a processor used along with an array to provide a versatile form of spatial filtering. It essentially performs spatial filtering to separate signals that have overlapping frequency content but generate from different spatial directions.</p>
 <p>Beam forming or spatial filtering is the process by which an array of large number of spatially separated sensors discriminate the signal arriving from a specified direction from a combination of isotropic random noise, called ambient noise, and other directional signals. In the following simulations, we deal with a number of equally spaced elements separated by a distance of λ/2 , where λ is the wavelength of the frequency for which the beam former is designed.</p>
 <p>The assumptions under which we perform the simulations are</p>
+<div style="margin-top: -3mm;"></div>
 <ul class="simple">
 <li><p>The noise is anistotropic.</p></li>
 <li><p>Ambient noise at the sensor-to-sensor output is uncorrelated</p></li>
 <li><p>The signal at the sensor-to-sensor outputs are fully correlated</p></li>
 </ul>
+<div style="margin-top: 8mm;"></div>
+<p>For our context, we’re mainly considering Uniform Linear Arrays (ULAs, for short). As the name suggests, it consists of a number of sensors that are placed at a uniform distance from each other. The sensor-spacing in the array is decided based on two important considerations.</p>
+<ol class="arabic simple">
+<li><p>First being the coherence of noise between sensors and formation of grating lobes in the visible region. As far as isotropic noise is concerned, the spatial coherence is zero at spacing in multiples of <span class="math notranslate nohighlight">\(\lambda/2\)</span> and small at all points beyond <span class="math notranslate nohighlight">\(\frac{\lambda}{2}\)</span>. To avoid grating lobe issues, the spacing between sensors must be less than <span class="math notranslate nohighlight">\(\frac{\lambda}{2}\)</span>. Hence, <span class="math notranslate nohighlight">\(\frac{\lambda}{2}\)</span> is chosen as the distance between two elements in an array.</p></li>
+<li><p>Second assumption is that the source is super-far from the array. This assumption allows us to design the system under the assumption that the wave-fronts that arrive at the aperture are parallel straight-lines. Note that this particular assumption also results in the consequential assumption that the source is at an infinite distance from the sensor. Consequently, our algorithm will only churn out the direction-of-arrival (DOA, for short). Since the wavefront will be parallel and at a delay, the wavefront reaches each element with varying delay. As a result, the output of each element will have a phase delay from each other as shown below.</p></li>
+</ol>
+<p><img alt="Direction of Arrival" src="../_images/Beamforming_Arrival.png" /></p>
+<p>Using the above figure, we can calculate the corresponding delay of each element. This will help us in determining to what degree we would have to delay the element outputs to obtain all the outputs of elements in co phase. Once the outputs are made in-phase, they are added. For an M element array, the co-phase addition increases the signal power <span class="math notranslate nohighlight">\(N^2\)</span> times and the
+uncorrelated noise power <span class="math notranslate nohighlight">\(N\)</span> times. Thus the SNR is enhanced by <span class="math notranslate nohighlight">\(N\)</span> times.</p>
+<p>By changing the delays of the element’s output, we can <em>steer</em> the setup to give the gain
+to signals coming from a certain direction. This is called beam steering and is one of the most
+attractive features of a beamformer because it allows us to shift our attention to one particular direction without physically having to move the ULA. However, as one ‘steers’ a beamformer, the width of the
+main lobe goes on increasing because the effective length of the array decreases. That’s the trade-off.</p>
+<p>In our simulation, we create a matrix with the columns corresponding to the output of each element for a source at a certain angle. The noise is then added. This is the output of the elements in the array. This is the basic setup. The array is then manipulated or used as input for other array manipulations to obtain the solution to the problem/objective posed.</p>
+<p>To put things mathematically, let the source signal be <span class="math notranslate nohighlight">\(s(k)\)</span>. The output of the elements are delayed versions of <span class="math notranslate nohighlight">\(s(k)\)</span>.
+So, for an element, <em>i</em>, the output signal would be
+$<span class="math notranslate nohighlight">\(
+y(k) = s[k - \tau_i(\theta)]
+\)</span>$</p>
+<p>Using the fourier transform, we get the following
+$<span class="math notranslate nohighlight">\(
+Y_i(\omega, \theta) = e^{-j \omega \tau_i(\theta)} S[\omega]
+\)</span>$
+where,</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\tau_i(\theta) = d_m \frac{cos(\theta)}{c} F_s\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(d_m\)</span>: distance between the element in consideration and the element where the wavefront strikes first.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\theta\)</span>: the angle the rays make with the array axis.</p></li>
+<li><p><span class="math notranslate nohighlight">\(c\)</span>: the speech of sound in water</p></li>
+<li><p><span class="math notranslate nohighlight">\(F_s\)</span>: The sampling frequency of the elements.</p></li>
+</ul>
+<div style="margin-top: 8mm;"></div>
+<p>Now, we need to construct a steering vector,
+$<span class="math notranslate nohighlight">\(
+d(\omega, \theta) = [1, e^{j\omega \tau_2 |theta}, e^{j\omega \tau_3 |theta} ... , e^{j\omega \tau_M |theta}]
+\)</span>$</p>
+<p>To obtain the element output, we multiply this matrix with the signal function, which results in the signal being delayed by the specificed delay.
+$<span class="math notranslate nohighlight">\(
+\mathbf{Y}(\omega, \theta) = d(\omega, \theta) S[\omega]
+\)</span>$</p>
+<p>The output signal is thus given by
+$<span class="math notranslate nohighlight">\(
+Z(\omega, \theta) = \sum_{i = 1}^M F_{i}^*(\omega) Y_i (\omega, \theta) = F^H(\omega) Y(\omega, \theta)
+\)</span>$
+where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(F^H\)</span>: the matrix containing the complex weights.</p></li>
+</ul>
+<p>The complex radiation field produced by a linear array of <span class="math notranslate nohighlight">\(N\)</span> passive receivers is given by
+$<span class="math notranslate nohighlight">\(
+Z(\omega, \theta) =  \frac{1}{M} \sum_{m = 1}^{M} s(\omega) e^{- j (m-1) \frac{\omega d}{c} (cos(\theta) - cos(\psi))}
+\)</span>$</p>
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">#</a></h2>
 <ul class="simple">
@@ -494,7 +549,7 @@ document.write(`
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Frequency Domain Beamforming</p>
+        <p class="prev-next-title">Narrowband Beamformer</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

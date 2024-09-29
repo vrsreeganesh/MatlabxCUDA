@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Frequency Domain Beamforming &#8212; A Functional Introduction to MATLAB x CUDA</title>
+    <title>Narrowband Beamformer &#8212; A Functional Introduction to MATLAB x CUDA</title>
   
   
   
@@ -57,6 +57,8 @@
     <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/Beamforming_FrequencyDomainBeamforming';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -216,7 +218,7 @@
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../Beamforming.html">Beamforming</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Frequency Domain Beamforming</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Narrowband Beamformer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Beamforming_WindowedFrequencyDomainBeamforming.html">Frequency Domain Beamforming with Sensor-Weighing</a></li>
 </ul>
 </details></li>
@@ -408,7 +410,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Frequency Domain Beamforming</h1>
+    <h1>Narrowband Beamformer</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -419,8 +421,17 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#theory">Theory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-definition">Kernel Definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
             </nav>
         </div>
@@ -432,23 +443,114 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="frequency-domain-beamforming">
-<h1>Frequency Domain Beamforming<a class="headerlink" href="#frequency-domain-beamforming" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="narrowband-beamformer">
+<h1>Narrowband Beamformer<a class="headerlink" href="#narrowband-beamformer" title="Link to this heading">#</a></h1>
 <section id="theory">
-<h2><a class="reference external" href="https://en.wikipedia.org/wiki/Discrete-time_beamforming#Frequency-domain_beamforming">Theory</a><a class="headerlink" href="#theory" title="Link to this heading">#</a></h2>
+<h2>Theory<a class="headerlink" href="#theory" title="Link to this heading">#</a></h2>
+<p>As presented in the previous section, we see that the outputs of each element, in the array, differ in phase. They are made in-phase again by bringing about an artificial delay corresponding to the array position. In this code, this artificial delay is brought in using the following property of the fourier-transform</p>
+<div class="math notranslate nohighlight">
+\[
+x(t - t_0) \leftrightarrow e^{-j \omega t_0} X(\omega)
+\]</div>
+<div style="margin-top: 6mm;"></div>
+<p>So to explain the procedure in a step-manner, it is as follows</p>
+<div style="margin-top: -3mm;"></div>
+<ol class="arabic simple">
+<li><p>The input is fourier-transformed.</p></li>
+<li><p>A weight-vector is defined for a set of equally spaced angles ranging from 0 to 180.</p></li>
+<li><p>The fourier-transform of the input and the weight-vector is multiplied.</p></li>
+<li><p>Then the absolute value vs angle is plotted.</p></li>
+</ol>
+<div style="margin-top: 6mm;"></div>
+<p>The result of this particular procedure results in beam-patterns where there is a maxima for the angle that equals the original direction of arrival and for every other angles, an absolute value much smaller than the peak-value is given.</p>
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
 </section>
 <section id="matlab-code">
 <h2>MATLAB Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<!-- ======================================================================= -->
+<p>We first start off by defining the parameters of our uniform-linear-array.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Initializing sensor-array paramters</span>
+<span class="nb">angle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span><span class="w">                 </span><span class="c">% angle of arrival</span>
+<span class="n">signal_frequency</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2000</span><span class="p">;</span><span class="w">    </span><span class="c">% frequency of the arriving signal</span>
+<span class="n">Fs</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">12800</span><span class="p">;</span><span class="w">                 </span><span class="c">% sampling-frequency of the sensors</span>
+<span class="n">Ts</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="o">/</span><span class="n">Fs</span><span class="p">;</span><span class="w">                  </span><span class="c">% corresponding time-period</span>
+<span class="n">sound_speed</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1500</span><span class="p">;</span><span class="w">         </span><span class="c">% speed of sound in water</span>
+<span class="n">num_sensors</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">64</span><span class="p">;</span><span class="w">           </span><span class="c">% number of sensors in the sensor-array</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we define some dependent parameters that will be used to simulate the signals that arrive at the sensors in the sensor-array.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="n">SNR</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">                                </span><span class="c">% SNR of the received signal</span>
+<span class="n">N</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">256</span><span class="p">;</span><span class="w">                                </span><span class="c">% number of samples we&#39;ll be simulating</span>
+<span class="n">t</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">Ts</span><span class="p">;</span><span class="w">                         </span><span class="c">% time-periods</span>
+<span class="n">lambda</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">sound_speed</span><span class="o">/</span><span class="n">signal_frequency</span><span class="p">;</span><span class="w">  </span><span class="c">% wavelength of arriving signal</span>
+<span class="n">x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">lambda</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span><span class="w">                           </span><span class="c">% sensor-spacing</span>
+<span class="n">d</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">x</span><span class="o">*</span><span class="nb">cosd</span><span class="p">(</span><span class="nb">angle</span><span class="p">)</span><span class="o">/</span><span class="n">sound_speed</span><span class="p">;</span><span class="w">          </span><span class="c">% time-delay between sensors</span>
+<span class="n">signalMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">num_sensors</span><span class="p">);</span><span class="w">    </span><span class="c">% declaring the signal-matrix</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we simulate the signals that would arrive at the signal array for the current parameters and conditions. Since we have privileged information about the nature of the signal, we directly simulate it using the calculated delays. And this simulation is done element-by-element.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Bringing the natural delay</span>
+<span class="n">y</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">pi</span><span class="o">*</span><span class="n">signal_frequency</span><span class="o">*</span><span class="n">t</span><span class="p">);</span>
+<span class="n">tend</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">Ts</span><span class="p">;</span>
+<span class="n">xaxis</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">tend</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">);</span>
+
+<span class="c">%% Building Signal</span>
+<span class="k">for</span><span class="w"> </span><span class="nb">i</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="n">num_sensors</span>
+<span class="w">    </span><span class="n">signalMatrix</span><span class="p">(:,</span><span class="nb">i</span><span class="p">)</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">pi</span><span class="o">*</span><span class="n">signal_frequency</span><span class="o">*</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="p">(</span><span class="nb">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">d</span><span class="p">));</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we define the set of angles for which we’ll be beamforming. We choose to beamform for 512 equally spaced angles in the range of <span class="math notranslate nohighlight">\([0,180]\)</span>. Note that beamforming for one angle is independent of calculations performed for others. Thus, beamforming is highly parallelizable. This means that the more number of angles we want to beamform for, the better GPU shines at the task. So feel free to change the number of angles for which we’re beamforming below and see the beampattern get more finer. After defining the set of angles for which we’re beamforming, we calculate the delays associated with those angles using the expression obtained before.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Beamforming parameters</span>
+<span class="n">anglesToBeamform</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">180</span><span class="p">,</span><span class="w"> </span><span class="mi">512</span><span class="p">);</span>
+<span class="n">delaysToBeamform</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">x</span><span class="o">*</span><span class="nb">cosd</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">)</span><span class="o">/</span><span class="n">sound_speed</span><span class="p">;</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we compile the CUDA code and call the function with the arguments we setup. Note that this compilation doesn’t need to be done each time and just needs to be once after any changes has been made to the CUDA code. I’ve thrown this in here to make things easier. And it is generally a good idea to throw in the compilation step in here (provided it doesn’t take too much time to compile) because any kind of errors will be immediately brought to our attention. Back to the task, after the function has been called, the returned signal will be a complex signal.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% compiling the mex-code</span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">fdb_v2_structure.cu</span>
+
+<span class="c">%% calling the function</span>
+<span class="n">signalMatrix_fft</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">fft</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">);</span>
+<span class="n">beamformedMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">fdb_v2</span><span class="p">(</span><span class="n">signalMatrix_fft</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                            </span><span class="n">delaysToBeamform</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                            </span><span class="n">Fs</span><span class="p">);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Now that we’ve obtained the beamformed complex signals for each angle, we check the amplitude of the fourier-coefficient corresponding to the frequency of the signal.The angle which has the highest coefficient corresponds to the direction of arrival. The beam-pattern is a plot with angles along the x-axis and the <span class="math notranslate nohighlight">\(\log\)</span> of the coefficient along the y-axis. We create and plot the beam-pattern for this particular algorithm and parameters.</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">%% Plotting beampattern</span>
+<span class="n">index_of_interest</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                    </span><span class="nb">floor</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">signal_frequency</span><span class="o">/</span><span class="n">Fs</span><span class="p">);</span>
+<span class="n">rowOfInterest</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">beamformedMatrix</span><span class="p">(</span><span class="n">index_of_interest</span><span class="p">,:));</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="n">rowOfInterest</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="nb">log</span><span class="p">(</span><span class="n">rowOfInterest</span><span class="p">));</span>
+</pre></div>
+</div>
+<section id="final-matlab-code">
+<h3>Final Matlab Code<a class="headerlink" href="#final-matlab-code" title="Link to this heading">#</a></h3>
+<!-- ======================================================================= -->
+<p>Putting it all together we get the following Matlab code</p>
 <div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
-<span class="cm">=================================================================================</span>
-<span class="cm">Aim: Implementing directional frequency-domain beamforming</span>
-<span class="cm">=================================================================================</span>
+<span class="cm">   Aim: Implementing directional frequency-domain beamforming</span>
 <span class="cm">%}</span>
 
 <span class="c">%% basic setup</span>
 <span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span>
 
-<span class="c">%% Initializing variables</span>
+<span class="c">%% Initializing sensor-array paramters</span>
 <span class="nb">angle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span><span class="w"> </span>
 <span class="n">signal_frequency</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2000</span><span class="p">;</span>
 <span class="n">Fs</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">12800</span><span class="p">;</span><span class="w"> </span>
@@ -486,7 +588,6 @@ document.write(`
 <span class="n">beamformedMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">fdb_v2</span><span class="p">(</span><span class="n">signalMatrix_fft</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
 <span class="w">                            </span><span class="n">delaysToBeamform</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
 <span class="w">                            </span><span class="n">Fs</span><span class="p">);</span>
-<span class="n">beamformedMatrix_ifft</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">ifft</span><span class="p">(</span><span class="n">beamformedMatrix</span><span class="p">);</span>
 
 <span class="c">%% Plotting beampattern</span>
 <span class="n">index_of_interest</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">floor</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">signal_frequency</span><span class="o">/</span><span class="n">Fs</span><span class="p">);</span>
@@ -496,9 +597,297 @@ document.write(`
 <span class="nb">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">anglesToBeamform</span><span class="p">,</span><span class="w"> </span><span class="nb">log</span><span class="p">(</span><span class="n">rowOfInterest</span><span class="p">));</span>
 </pre></div>
 </div>
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+</section>
 </section>
 <section id="cuda-code">
 <h2>CUDA Code<a class="headerlink" href="#cuda-code" title="Link to this heading">#</a></h2>
+<p>In the CUDA code, we need to define two functions: gateway function and kernel-definition.</p>
+<section id="kernel-definition">
+<h3>Kernel Definition<a class="headerlink" href="#kernel-definition" title="Link to this heading">#</a></h3>
+<p>The kernel takes in the following set of parameters.</p>
+<ol class="arabic simple">
+<li><p>Pointer to the array containing the dimensions of the signal-matrix, in the GPU global-memory.</p></li>
+<li><p>Number of angles to beamform</p></li>
+<li><p>Pointer to the real-part of signal-matrix, in the GPU global-memory</p></li>
+<li><p>Pointer to the imaginary-part of the signal-matrix, in the GPU global-memory.</p></li>
+<li><p>Pointer to the real-part of the beamformed-matrix, in the GPU global-memory</p></li>
+<li><p>Pointer to the imaginary-part of the beamformed-matrix, in the GPU global-memory.</p></li>
+<li><p>Pointer to the array containing the delays, in the GPU global-memory.</p></li>
+<li><p>The sampling-frequency</p></li>
+</ol>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// kernels</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">beamformKernel</span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">int</span><span class="w"> </span><span class="n">num_angles_to_beamform</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">signalMatrix_d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">signalMatrix_d_inputPointer_imag</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_d_inputPointer_imag</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">delays_d_inputPointer</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="n">sampling_frequency</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>In this particular operation, we use the shared-memory. And since we’re using dynamic shared-memory for this task, we declare the pointer to the shared-memory in the following manner.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// declaring the shared memory</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>In our kernel design, each block is assigned the responsibility of delaying the signal from a particular sensor by the appropriate delay corresponding to the angle for which we’re beamforming and the sensor position. And each thread is assigned the responsibility of carrying out sample-level complex multiplications. And the grid-configuration is in such a way that all the threads-blocks in a particular depth (third-dimension) is responsible for carrying out the beamforming for a particular angle. So the threads are mapped to the the sample it is responsible for and the blocks are assigned to each sensor.
+Next, we calculate the input the particular thread should work with. Since the data-structure containing the input-signal is a matrix and since matrices are stored linearly in the GPU global-memory, we also produce the linear mappings into the matrix.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// address along dimension 1</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_dim1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// address along dimension 0</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bidy</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">     </span><span class="c1">// linear addressing into the inputs</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we initialize some variables for some better readability. We infer the number of sensors from the input-matrix since the dimensionalit of the matrix along axis = 1 gives us the number of sensors. As mentioned before, since the blocks at each “level” are assigned the responsibility of carrying out calculations for an angle, we obtain the angle this particular thread is responsible for, in the following manner.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// miscellaneous</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_sensors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">current_angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we produce the element-wise complex multiplication that comes with delaying signals. It contains the following set of steps</p>
+<ol class="arabic simple">
+<li><p>The first step is to check the validity of the threads. Note that this is an important step because it is often the case that the number of threads launched is more than the number of threads required for the task. Thus validity checks is always highly recommended. The validity checks validity of current-sensor, validity of current-sample and the validity of the current-angle.</p></li>
+<li><p>After validity checks, we obtain the number of samples in the signal, calculated from the dimensions of the input-matrix.</p></li>
+<li><p>Next, we calculate the delaying value</p></li>
+<li><p>We then produce the real-part of the complex multiplication and imaginary-part of the complex multiplication.</p></li>
+<li><p>The results is then stored to the shared-memory.</p></li>
+<li><p>This is followed by thread syncing so that the accumulation procedure that follows won’t have to work with incomplete values.</p></li>
+</ol>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// weighing and storing to the shared matrix</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">current_angle</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">num_angles_to_beamform</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// weights</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">wt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">PI</span><span class="o">*</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">linearIndex2D_dim0</span><span class="o">*</span><span class="n">sampling_frequency</span><span class="o">/</span><span class="n">N</span><span class="o">*</span>\
+<span class="w">                            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">delays_d_inputPointer</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// obtaining current real and imaginary part</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signalMatrix_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">];</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signalMatrix_d_inputPointer_imag</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// obtaining resulting real and imaginary parts</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">result_real_part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current_real</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">current_imag</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">wt</span><span class="p">);</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">result_imag_part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current_imag</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">current_real</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">wt</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// copying to the shared memory</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">linearIndex2D_dim1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result_real_part</span><span class="p">;</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">linearIndex2D_dim1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result_imag_part</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing threads</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Now that the element-wise multiplications for the delaying has been completed, we assign the first thread to accumulate the values. We ensure that just one thread does it by first creating a gate that only the first thread from the block can calculate the value. The accumulation is done for both the real-part and imaginary part independently and finally stored into the space allocated for the beamformed matrix.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// Getting the first element to adding them up</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="o">==</span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">current_angle</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">num_angles_to_beamform</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+
+<span class="w">        </span><span class="c1">// getting the first element of each block to add things up</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accuSum_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accuSum_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;</span><span class="n">num_sensors</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">accuSum_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_real</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="n">accuSum_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_imag</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// linear indexing to output tensor</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// copying:: verified</span>
+<span class="w">        </span><span class="n">beamformedMatrix_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_real</span><span class="p">;</span>
+<span class="w">        </span><span class="n">beamformedMatrix_d_inputPointer_imag</span><span class="p">[</span><span class="n">linearIndex2D_output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_imag</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+</pre></div>
+</div>
+<!-- ====================================================================== -->
+<p>Putting it together, we get the following kernel definition s</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// kernels</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">beamformKernel</span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">int</span><span class="w"> </span><span class="n">num_angles_to_beamform</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">signalMatrix_d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">signalMatrix_d_inputPointer_imag</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_d_inputPointer_imag</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">delays_d_inputPointer</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="n">sampling_frequency</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// declaring the shared memory</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+
+<span class="w">    </span><span class="c1">// address along dimension 1</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_dim1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tidy</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// address along dimension 0</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bidy</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// linear addressing into the inputs</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// miscellaneous</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_sensors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">current_angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// weighing and storing to the shared matrix</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">current_angle</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">num_angles_to_beamform</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// weights</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">wt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">PI</span><span class="o">*</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">linearIndex2D_dim0</span><span class="o">*</span><span class="n">sampling_frequency</span><span class="o">/</span><span class="n">N</span><span class="o">*</span>\
+<span class="w">                            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">delays_d_inputPointer</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// obtaining current real and imaginary part</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signalMatrix_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">];</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">current_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">signalMatrix_d_inputPointer_imag</span><span class="p">[</span><span class="n">linearIndex2D_input</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// obtaining resulting real and imaginary parts</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">result_real_part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current_real</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">current_imag</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">wt</span><span class="p">);</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">result_imag_part</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current_imag</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">current_real</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">wt</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// copying to the shared memory</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">linearIndex2D_dim1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result_real_part</span><span class="p">;</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">linearIndex2D_dim1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result_imag_part</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing threads</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Getting the first element to adding them up</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="o">==</span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">current_angle</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">num_angles_to_beamform</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+
+<span class="w">        </span><span class="c1">// getting the first element of each block to add things up</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accuSum_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accuSum_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;</span><span class="n">num_sensors</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">accuSum_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_real</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">];</span>
+<span class="w">            </span><span class="n">accuSum_imag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_imag</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// linear indexing to output tensor</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// copying:: verified</span>
+<span class="w">        </span><span class="n">beamformedMatrix_d_inputPointer_real</span><span class="p">[</span><span class="n">linearIndex2D_output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_real</span><span class="p">;</span>
+<span class="w">        </span><span class="n">beamformedMatrix_d_inputPointer_imag</span><span class="p">[</span><span class="n">linearIndex2D_output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum_imag</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing threads</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="gateway-function">
+<h3>Gateway function<a class="headerlink" href="#gateway-function" title="Link to this heading">#</a></h3>
+<p>In the gateway function, the first thing we check is the validity of the inputs that were passed by the matlab script calling our function. This checks usually involve the number of inputs, number of expected outputs, the data-type of the inputs and the dimensionality of the inputs. Note that this is super important to do but we’re skipping it here since, from the previous examples, you must be super familiar with how to write these. So we jump straight into fetching the inputs.</p>
+<p>The received inputs are encapsulated using objects of the class, <em>CustomGPUObject</em>. The inputs are then made available in the GPU global-memory using the class method, <em>copyFromHostToDevice</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="c1">// main function</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Fetching inputs</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="n">signalMatrix</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="n">delayMatrix</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">sampling_frequency</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">mxGetScalar</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// Sending the data and input-dimensions to the GPU</span>
+<span class="w">    </span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">delayMatrix</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+
+<span class="w">    </span><span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>Next, we allocate space for the output. To do this, first we calculate the output-dimensions based on the parameters we received from the inputs. Once the output-dimensions have been obtained, we create a Matlab matrix using the function, <em>mxCreateNumericArray()</em>. The matrix created using this method is encapulsated using an object of the class, <em>CustomGPUObject</em>. We then allocate space for the output in the GPU global-memory using the class-method, <em>copyFromHostToDevice()</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// preparing to create output</span>
+<span class="w">    </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">beamformedMatrix_outputDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">beamformedMatrix_outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)</span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="n">beamformedMatrix_outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)</span><span class="n">delayMatrix</span><span class="p">.</span><span class="n">numElements</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// creating an output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">(((</span><span class="n">mwSize</span><span class="p">)</span><span class="mi">2</span><span class="p">),</span>
+<span class="w">                                    </span><span class="n">beamformedMatrix_outputDimensions</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">mxCOMPLEX</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">beamformedMatrix</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+<p>This is followed by setting up the launch-configuration parameters: block-configuration, grid-configuration and shared-memory size. In our kernel definition, since each thread is assigned the responsibility of carrying out element-wise multiplication for a signal, the number of threads in a block is equal to the number of samples recorded by a sensor. Since each block is assigned the responsibility for dealing with one sensor, the number of blocks are chosen in such a way that, for one angle, the number of blocks assigned to it is greater than or equal to the number of sensors. The number of blocks along the third dimension is equal to the number of angles for which, we must beamform. The shared-memory size is calculated to be twice the number of elements required to store a signal obtained by a sensor. This is because we’re calculating and storing for both real and imaginary numbers. AFter this, the kernel is launched into the default stream using the launch-configuration parameters and the function arguments. Since launches to the default stream are block, we copy the results back from the device memory space to the host-memory space right after the function definition.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="w">    </span><span class="c1">// calling the function</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_threads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">sqrt</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_blocks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">sqrt</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span><span class="w"> </span><span class="n">num_threads</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridConfiguration</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span><span class="w"> </span><span class="n">num_blocks</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">delayMatrix</span><span class="p">.</span><span class="n">numElements</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">beamformKernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">blockConfiguration</span><span class="p">,</span>
+<span class="w">                        </span><span class="mi">2</span><span class="o">*</span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="o">&gt;&gt;&gt;</span>
+<span class="w">                            </span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">delayMatrix</span><span class="p">.</span><span class="n">numElements</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">signalMatrix</span><span class="p">.</span><span class="n">d_inputPointer_imag</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">beamformedMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">beamformedMatrix</span><span class="p">.</span><span class="n">d_inputPointer_imag</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">delayMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">sampling_frequency</span><span class="p">);</span>
+
+
+<span class="w">    </span><span class="c1">// copying the data from the device to the host</span>
+<span class="w">    </span><span class="n">beamformedMatrix</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+</pre></div>
+</div>
+<!-- ======================================================================= -->
+</section>
+<section id="final-cuda-code">
+<h3>Final CUDA Code<a class="headerlink" href="#final-cuda-code" title="Link to this heading">#</a></h3>
+<p>Putting together the kernel-definition and gateway function, we get the following.</p>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm">=================================================================================</span>
 <span class="cm">Aim: Directional frequency-domain beamforming using CUDA</span>
@@ -535,7 +924,9 @@ document.write(`
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bidy</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
 
 <span class="w">    </span><span class="c1">// linear addressing into the inputs</span>
-<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">linearIndex2D_dim1</span><span class="o">*</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
 
 <span class="w">    </span><span class="c1">// miscellaneous</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_sensors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">signalMatrix_d_inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
@@ -649,6 +1040,22 @@ document.write(`
 <span class="p">}</span><span class="w">     </span>
 </pre></div>
 </div>
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+<!-- B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B=B -->
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>“Discrete-time Beamforming: Frequency-domain Beamforming.” Wikipedia, Wikimedia Foundation, <a class="reference external" href="https://en.wikipedia.org/wiki/Discrete-time_beamforming#Frequency-domain_beamforming">Link</a>. Accessed 29 Sept. 2024.</p></li>
+<li><p>MathWorks. “mxCreateNumericArray.” MATLAB API Reference, MathWorks, <a class="reference internal" href="#www.mathworks.com/help/matlab/apiref/mxcreatenumericarray.html"><span class="xref myst">Link</span></a>. Accessed 26 Sept. 2024.</p></li>
+</ul>
 </section>
 </section>
 
@@ -717,8 +1124,17 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#theory">Theory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-matlab-code">Final Matlab Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-code">CUDA Code</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kernel-definition">Kernel Definition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#gateway-function">Gateway function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#final-cuda-code">Final CUDA Code</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>
 
