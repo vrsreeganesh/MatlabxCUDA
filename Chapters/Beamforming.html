@@ -458,10 +458,11 @@ attractive features of a beamformer because it allows us to shift our attention 
 main lobe goes on increasing because the effective length of the array decreases. That’s the trade-off.</p>
 <p>In our simulation, we create a matrix with the columns corresponding to the output of each element for a source at a certain angle. The noise is then added. This is the output of the elements in the array. This is the basic setup. The array is then manipulated or used as input for other array manipulations to obtain the solution to the problem/objective posed.</p>
 <p>To put things mathematically, let the source signal be <span class="math notranslate nohighlight">\(s(k)\)</span>. The output of the elements are delayed versions of <span class="math notranslate nohighlight">\(s(k)\)</span>.
-So, for an element, <em>i</em>, the output signal would be
-$<span class="math notranslate nohighlight">\(
+So, for an element, <em>i</em>, the output signal would be</p>
+<div class="math notranslate nohighlight">
+\[
 y(k) = s[k - \tau_i(\theta)]
-\)</span>$</p>
+\]</div>
 <p>Using the fourier transform, we get the following
 $<span class="math notranslate nohighlight">\(
 Y_i(\omega, \theta) = e^{-j \omega \tau_i(\theta)} S[\omega]

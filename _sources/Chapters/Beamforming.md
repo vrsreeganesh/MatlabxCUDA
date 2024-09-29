@@ -32,6 +32,7 @@ In our simulation, we create a matrix with the columns corresponding to the outp
 
 To put things mathematically, let the source signal be $s(k)$. The output of the elements are delayed versions of $s(k)$.
 So, for an element, *i*, the output signal would be 
+
 $$
 y(k) = s[k - \tau_i(\theta)]
 $$
