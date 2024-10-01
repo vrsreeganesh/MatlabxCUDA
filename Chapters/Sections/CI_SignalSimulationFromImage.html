@@ -60,7 +60,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Sections/CI_SignalSimulationFromImage';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Miscellaneous" href="../Miscellaneous.html" />
+    <link rel="next" title="Basic High-Frequency Computational Imaging" href="CI_BasicHighFrequencyImaging.html" />
     <link rel="prev" title="Computational Imaging" href="../ComputationalImaging.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -222,6 +222,9 @@
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="../ComputationalImaging.html">Computational Imaging</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Signal Simulation from Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CI_BasicHighFrequencyImaging.html">Basic High-Frequency Computational Imaging</a></li>
+
+
 </ul>
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../Miscellaneous.html">Miscellaneous</a></li>
@@ -398,7 +401,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -414,6 +419,15 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab">Matlab</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda">CUDA</a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -425,6 +439,429 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="signal-simulation-from-image">
 <h1>Signal Simulation from Image<a class="headerlink" href="#signal-simulation-from-image" title="Link to this heading">#</a></h1>
+<section id="matlab">
+<h2>Matlab<a class="headerlink" href="#matlab" title="Link to this heading">#</a></h2>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
+<span class="cm">=================================================================================</span>
+<span class="cm">Aim: Simulate Signals From an Image</span>
+<span class="cm">=================================================================================</span>
+<span class="cm">%}</span>
+
+<span class="c">%% Basic setup</span>
+<span class="nb">clc</span><span class="p">;</span><span class="w"> </span><span class="nb">clear</span><span class="p">;</span>
+
+<span class="c">%% Compiling CUDA code </span>
+<span class="n">mexcuda</span><span class="w"> </span><span class="s">signal_simulation_imaging_structure.cu</span>
+
+<span class="c">%% Sensor Array Parameters</span>
+<span class="n">sensorarray_origin</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">;</span><span class="mi">0</span><span class="p">];</span><span class="w">            </span><span class="c">% The location of the first sensor in the sensor-array</span>
+<span class="n">sensor_spacing</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">1e-1</span><span class="p">;</span><span class="w">                 </span><span class="c">% the distance between sensors in the ULA</span>
+<span class="n">sensorarray_direction</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">;</span><span class="mi">0</span><span class="p">];</span><span class="w">         </span><span class="c">% The direction from first sensor to rest of the sensors</span>
+<span class="n">sensorarray_direction</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">sensorarray_direction</span><span class="o">/</span><span class="p">(</span><span class="nb">vecnorm</span><span class="p">(</span><span class="n">sensorarray_direction</span><span class="p">));</span>
+<span class="n">sensorarray_direction</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">sqrt</span><span class="p">(</span><span class="n">sensor_spacing</span><span class="p">)</span><span class="o">*</span><span class="n">sensorarray_direction</span><span class="p">;</span>
+<span class="n">num_sensors</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">256</span><span class="p">;</span><span class="w">                     </span><span class="c">% number of sensors in the ULA</span>
+<span class="n">emitter_location</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">sensorarray_origin</span><span class="p">;</span><span class="w"> </span><span class="c">% location of ping emitter</span>
+
+<span class="c">%% Signal Parameters</span>
+<span class="n">c</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1500</span><span class="p">;</span><span class="w">                                                   </span><span class="c">% Speed of Sound in Water</span>
+<span class="n">signal_frequency</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span><span class="w">                                     </span><span class="c">% Frequency of Transmitted Sine-wave</span>
+<span class="n">recording_time</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">2e-1</span><span class="p">;</span><span class="w">                                      </span><span class="c">% Duration of Recording</span>
+<span class="n">sampling_frequency</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">16e3</span><span class="p">;</span><span class="w">                                  </span><span class="c">% Sampling Frequency of Hydrophones</span>
+<span class="n">transmissionDuration</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">1e-2</span><span class="p">;</span><span class="w">                                </span><span class="c">% Duration of transmission</span>
+<span class="n">timeArray</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">0</span><span class="p">:(</span><span class="mi">1</span><span class="o">/</span><span class="n">sampling_frequency</span><span class="p">):</span><span class="n">transmissionDuration</span><span class="p">;</span><span class="w">  </span><span class="c">% sampling intervals</span>
+<span class="n">transmissionSignal</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">chirp</span><span class="p">(</span><span class="n">timeArray</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                            </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                            </span><span class="n">timeArray</span><span class="p">(</span><span class="k">end</span><span class="p">),</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                            </span><span class="n">sampling_frequency</span><span class="o">/</span><span class="mi">2</span><span class="p">);</span>
+<span class="n">max_range</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">transmissionDuration</span><span class="o">*</span><span class="n">c</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span>
+
+
+<span class="c">%% Buidling Signal Target</span>
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">phantom</span><span class="p">(</span><span class="mi">1024</span><span class="p">);</span>
+
+<span class="n">inputImage</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">zeros</span><span class="p">(</span><span class="nb">size</span><span class="p">(</span><span class="n">inputImage</span><span class="p">));</span>
+<span class="c">% inputImage(end-100:end, end/2:end/2+20) = 1;</span>
+<span class="c">% inputImage(end,1) = 1;</span>
+
+<span class="c">% inputImage(1, 1) = 1;</span>
+<span class="c">% inputImage(end, 1) = 1;</span>
+<span class="c">% inputImage(1, end) = 1;</span>
+<span class="c">% inputImage(end, end) = 1;</span>
+
+<span class="n">inputImage</span><span class="p">(</span><span class="k">end</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="k">end</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="c">% top_left_coordinate = [-max_range*0.8;1];</span>
+<span class="c">% bottom_right_coordinate = [max_range*0.8; max_range*1];</span>
+
+<span class="n">top_left_coordinate</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="p">;</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">max_range</span><span class="p">];</span>
+<span class="n">bottom_right_coordinate</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="n">max_range</span><span class="p">;</span><span class="w"> </span><span class="mi">1</span><span class="o">*</span><span class="n">max_range</span><span class="p">];</span>
+
+<span class="c">%% Calling Signal Simulation Script</span>
+<span class="nb">tic</span>
+<span class="p">[</span><span class="n">distanceMatrix</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">    </span><span class="n">amplitudeMatrix</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">    </span><span class="n">signalMatrix</span><span class="p">]</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="k">...</span>
+<span class="w">    </span><span class="n">signal_simulation_imaging_structure</span><span class="p">(</span><span class="n">sensorarray_origin</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">sensorarray_direction</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">sensor_spacing</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">num_sensors</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">emitter_location</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">inputImage</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">top_left_coordinate</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">bottom_right_coordinate</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">signal_frequency</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">recording_time</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">sampling_frequency</span><span class="p">,</span><span class="w"> </span><span class="k">...</span>
+<span class="w">                                        </span><span class="n">transmissionSignal</span><span class="p">);</span>
+<span class="n">toc</span>
+
+
+<span class="s">%%</span><span class="w"> </span><span class="s">Plotting</span><span class="w"> </span><span class="s">sensor-wise</span><span class="w"> </span><span class="s">distances</span>
+<span class="nb">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">dynamicRangeAdjustedAmplitudeMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">log</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">amplitudeMatrix</span><span class="p">);</span>
+<span class="nb">imagesc</span><span class="p">(</span><span class="n">dynamicRangeAdjustedAmplitudeMatrix</span><span class="p">);</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Pre-Convolution Output&quot;</span><span class="p">);</span>
+
+<span class="nb">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">(:,</span><span class="w"> </span><span class="mi">1</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Signal Received By First Sensor&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">(:,</span><span class="w"> </span><span class="mi">2</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Signal Received By Middle Sensor&quot;</span><span class="p">);</span>
+<span class="nb">subplot</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">);</span><span class="w"> </span><span class="nb">plot</span><span class="p">(</span><span class="n">signalMatrix</span><span class="p">(:,</span><span class="w"> </span><span class="mi">3</span><span class="p">));</span><span class="w"> </span><span class="nb">title</span><span class="p">(</span><span class="s">&quot;Signal Received By End Sensor&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="cuda">
+<h2>CUDA<a class="headerlink" href="#cuda" title="Link to this heading">#</a></h2>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm">================================================================================</span>
+<span class="cm">Aim: Demonstrate Signal Simulation from a High-frequency Image</span>
+<span class="cm">================================================================================</span>
+<span class="cm">*/</span><span class="w"> </span>
+
+<span class="c1">// header-file</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mex.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;booktools.h&quot;</span>
+
+<span class="c1">// kernels</span>
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">PerPixel</span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_bottom_left_corner</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_top_right_corner</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_sensor_origin</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_sensor_direction</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointer_NumSensors</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointer_SoundSpeed</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointer_EmitterLocation</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointer_SamplingFrequency</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointer_InputImage</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointer_RecordingTime</span><span class="p">,</span>
+<span class="w">                            </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer_AmplitudeMatrix</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// getting address</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_pixel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_pixel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_pixel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx_pixel</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tidy_pixel</span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// Calculating inter-pixel spacing</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">pixel_x_spacing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">(</span><span class="kt">double</span><span class="p">)((</span><span class="n">d_top_right_corner</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">d_bottom_left_corner</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">((</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="mi">-1</span><span class="p">));</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">pixel_y_spacing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">(</span><span class="kt">double</span><span class="p">)((</span><span class="n">d_top_right_corner</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">d_bottom_left_corner</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">((</span><span class="kt">double</span><span class="p">)</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="mi">-1</span><span class="p">));</span>
+
+<span class="w">    </span><span class="c1">// Getting Pixel Characteristics</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">pixel_x_coordinate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_bottom_left_corner</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="p">(</span><span class="n">tidx_pixel</span><span class="mi">-1</span><span class="p">)</span><span class="o">*</span><span class="n">pixel_x_spacing</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">pixel_y_coordinate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_bottom_left_corner</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="p">(</span><span class="n">tidy_pixel</span><span class="mi">-1</span><span class="p">)</span><span class="o">*</span><span class="n">pixel_y_spacing</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// getting address</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_sensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_sensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_sensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_sensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx_sensor</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="n">tidy_sensor</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="n">tidz_sensor</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensor_number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">linearIndex2D_sensor</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Getting Sensor Characteristics</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sensor_x_coordinate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_sensor_origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="p">(</span><span class="n">sensor_number</span><span class="mi">-1</span><span class="p">)</span><span class="o">*</span><span class="n">d_sensor_direction</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sensor_y_coordinate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_sensor_origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="p">(</span><span class="n">sensor_number</span><span class="mi">-1</span><span class="p">)</span><span class="o">*</span><span class="n">d_sensor_direction</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// Calculating Distance Between Sensor and Pixel</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">distance_between_pixel_and_sensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pow</span><span class="p">((</span><span class="n">sensor_x_coordinate</span><span class="o">-</span><span class="n">pixel_x_coordinate</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                        </span><span class="n">pow</span><span class="p">((</span><span class="n">sensor_y_coordinate</span><span class="o">-</span><span class="n">pixel_y_coordinate</span><span class="p">),</span><span class="mi">2</span><span class="p">));</span>
+
+<span class="w">    </span><span class="c1">// Calculating Distance Between Transmitter and Pixel</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">distance_between_pixel_and_transmitter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pow</span><span class="p">((</span><span class="n">sensor_x_coordinate</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">d_inputPointer_EmitterLocation</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="w">                        </span><span class="n">pow</span><span class="p">((</span><span class="n">sensor_y_coordinate</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">d_inputPointer_EmitterLocation</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="mi">2</span><span class="p">));</span>
+
+<span class="w">    </span><span class="c1">// Writing the Value</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">tidx_pixel</span><span class="o">&lt;</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">tidy_pixel</span><span class="o">&lt;</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="n">sensor_number</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputPointer_NumSensors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// finding index to write to</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_Output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">linearIndex2D_pixel</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">sensor_number</span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">        </span><span class="c1">// finding time</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">distance_travelled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">distance_between_pixel_and_transmitter</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                            </span><span class="n">distance_between_pixel_and_sensor</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">time_travelled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)(</span><span class="n">distance_travelled</span><span class="o">/</span><span class="n">d_inputPointer_SoundSpeed</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="c1">// finding samples</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">samples_travelled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">time_travelled</span><span class="o">*</span><span class="n">d_inputPointer_SamplingFrequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+
+<span class="w">        </span><span class="c1">// writing to the final output</span>
+<span class="w">        </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D_Output</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">samples_travelled</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// syncing threads</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+
+<span class="w">    </span><span class="c1">// Signal generation part </span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_signal_generation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_signal_generation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_signal_generation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx_signal_generation</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>
+<span class="w">                                                </span><span class="n">tidy_signal_generation</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Checking sensor validity</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">linearIndex2D_signal_generation</span><span class="o">&lt;</span><span class="n">d_inputPointer_NumSensors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// updates</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">current_sensor_loop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">linearIndex2D_signal_generation</span><span class="p">;</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_samples_recording_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">d_inputPointer_SamplingFrequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputPointer_RecordingTime</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+
+<span class="w">        </span><span class="c1">// Looping through all the pixels</span>
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="o">&lt;</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"> </span><span class="o">++</span><span class="n">j</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// finding linear index to the delay-num-samples</span>
+<span class="w">                </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_loop_sample</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                    </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                    </span><span class="n">j</span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                    </span><span class="n">current_sensor_loop</span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">                </span><span class="c1">// obtaining num-sample delay</span>
+<span class="w">                </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">num_samples_loop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d_outputPointer</span><span class="p">[</span><span class="n">linearIndex2D_loop_sample</span><span class="p">];</span>
+
+<span class="w">                </span><span class="c1">// finding pixel-amplitude</span>
+<span class="w">                </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_loop_pixel_amplitude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">j</span><span class="o">*</span><span class="n">d_inputDimensions_Image</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">                </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pixel_amplitude_loop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                    </span><span class="n">d_inputPointer_InputImage</span><span class="p">[</span><span class="n">linearIndex2D_loop_pixel_amplitude</span><span class="p">];</span>
+
+<span class="w">                </span><span class="c1">// linear-indexing to the signal-matrix</span>
+<span class="w">                </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_AmplitudeMatrix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                    </span><span class="n">num_samples_loop</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                    </span><span class="n">current_sensor_loop</span><span class="o">*</span><span class="n">num_samples_recording_time</span><span class="p">;</span>
+
+<span class="w">                </span><span class="c1">// accumulating</span>
+<span class="w">                </span><span class="n">d_outputPointer_AmplitudeMatrix</span><span class="p">[</span><span class="n">linearIndex2D_AmplitudeMatrix</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                    </span><span class="n">d_outputPointer_AmplitudeMatrix</span><span class="p">[</span><span class="n">linearIndex2D_AmplitudeMatrix</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                    </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">pixel_amplitude_loop</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing threads</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="p">}</span>
+
+<span class="n">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">columnwiseConvolution</span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">,</span>
+<span class="w">                                        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer_AmplitudeMatrix</span><span class="p">,</span>
+<span class="w">                                        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_outputPointer_SignalMatrix</span><span class="p">,</span>
+<span class="w">                                        </span><span class="kt">int</span><span class="w"> </span><span class="n">numElements_TransmissionSignal</span><span class="p">,</span>
+<span class="w">                                        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">d_inputPointer_TransmissionSignal</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Declaring shared memory</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="n">__shared__</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[];</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// getting linear index into the pixels</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w"> </span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bidy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bidz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">blockIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_ForMainIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bidx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                            </span><span class="n">bidy</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>
+<span class="w">                                            </span><span class="n">bidz</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">gridDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// mapping from linear to index of base-index</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">signal_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">linearIndex2D_ForMainIndex</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">signal_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">linearIndex2D_ForMainIndex</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+
+<span class="w">    </span><span class="c1">// getting thread index</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidy_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tidz_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">threadIdx</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">linearIndex2D_kernel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tidx_kernel</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="n">tidy_kernel</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span>\
+<span class="w">                                        </span><span class="n">tidz_kernel</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">blockDim</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">kernel_length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">numElements_TransmissionSignal</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// fetching kernel value</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">meta_condition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">(</span><span class="n">signal_x</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">(</span><span class="n">signal_y</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">(</span><span class="n">linearIndex2D_kernel</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">kernel_length</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">((</span><span class="n">signal_x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">linearIndex2D_kernel</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="mi">0</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">((</span><span class="n">signal_x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">linearIndex2D_kernel</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span>\
+<span class="w">        </span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Initializing kernel</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">linearIndex2D_kernel</span><span class="o">&lt;</span><span class="n">kernel_length</span><span class="p">)</span><span class="w"> </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Checking the validity before copying</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">meta_condition</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// calculating dot product and copying to shared memory</span>
+<span class="w">        </span><span class="n">sharedMem</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">d_outputPointer_AmplitudeMatrix</span><span class="p">[</span><span class="n">linearIndex2D_ForMainIndex</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">linearIndex2D_kernel</span><span class="p">]</span><span class="o">*</span><span class="w"> </span>\
+<span class="w">            </span><span class="n">d_inputPointer_TransmissionSignal</span><span class="p">[</span><span class="n">linearIndex2D_kernel</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Getting first thread of all the block to write</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">linearIndex2D_kernel</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">signal_x</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">signal_y</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">d_outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="w"> </span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// accumulating shared-memory</span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="n">accuSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">for</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">&lt;</span><span class="n">min</span><span class="p">(</span><span class="n">numElements_TransmissionSignal</span><span class="p">,</span><span class="w"> </span><span class="n">signal_x</span><span class="p">);</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">accuSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accuSum</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">sharedMem</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// copying to the results</span>
+<span class="w">        </span><span class="n">d_outputPointer_SignalMatrix</span><span class="p">[</span><span class="n">linearIndex2D_ForMainIndex</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>\
+<span class="w">            </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">accuSum</span><span class="p">;</span>
+
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// syncing threads</span>
+<span class="w">    </span><span class="n">__syncthreads</span><span class="p">();</span>
+<span class="p">}</span>
+
+
+<span class="c1">// main function</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">mexFunction</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlhs</span><span class="p">,</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">plhs</span><span class="p">[],</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nrhs</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">mxArray</span><span class="w"> </span><span class="o">*</span><span class="n">prhs</span><span class="p">[])</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// meta stuff</span>
+<span class="w">    </span><span class="n">cudaError_t</span><span class="w"> </span><span class="n">err</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// checking number of outputs</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nlhs</span><span class="o">!=</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="n">mexErrMsgTxt</span><span class="p">(</span><span class="s">&quot;Number of Expected Outputs are Wrong  </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Fetching the Inputs </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">SensorArrayOrigin</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">SensorArrayDirection</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">SensorArraySpacing</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">NumSensors</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">3</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">EmitterLocation</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">4</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">InputImage</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">5</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">BottomLeftCoordinate</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">6</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">TopRightCoordinate</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">7</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">SoundSpeed</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">8</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">SignalFrequency</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">9</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">RecordingTime</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">10</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">SamplingFrequency</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">11</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">TransmissionSignal</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">12</span><span class="p">]);</span><span class="w"> </span>
+
+<span class="w">    </span><span class="c1">// Sending data to GPU</span>
+<span class="w">    </span><span class="n">SensorArrayOrigin</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">SensorArrayDirection</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">SensorArraySpacing</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">NumSensors</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">EmitterLocation</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">InputImage</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">BottomLeftCoordinate</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">TopRightCoordinate</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">SoundSpeed</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">SignalFrequency</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">RecordingTime</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">SamplingFrequency</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span><span class="n">TransmissionSignal</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// setting up the output-dimensions</span>
+<span class="w">    </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">outputDimensions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">InputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"> </span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">InputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"> </span>
+<span class="w">    </span><span class="n">outputDimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)</span><span class="n">NumSensors</span><span class="p">.</span><span class="n">inputPointer_real</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// creating output-matrix</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">((</span><span class="n">mwSize</span><span class="p">)</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">outputDimensions</span><span class="p">,</span><span class="w"> </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">outputPointer_class</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"> </span>
+<span class="w">    </span><span class="n">outputPointer_class</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="c1">// Creating Outputs for the Signal</span>
+<span class="w">    </span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="n">outputDimensions_AmplitudeMatrix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">mwSize</span><span class="p">));</span>
+<span class="w">    </span><span class="n">outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)(</span><span class="n">RecordingTime</span><span class="p">.</span><span class="n">inputPointer_real</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">SamplingFrequency</span><span class="p">.</span><span class="n">inputPointer_real</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="n">outputDimensions_AmplitudeMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">mwSize</span><span class="p">)</span><span class="n">NumSensors</span><span class="p">.</span><span class="n">inputPointer_real</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+<span class="w">    </span><span class="c1">// Creating Second Output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">((</span><span class="n">mwSize</span><span class="p">)</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">outputDimensions_AmplitudeMatrix</span><span class="p">,</span><span class="w"> </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">AmplitudeMatrix</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span><span class="w"> </span><span class="n">AmplitudeMatrix</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Creating Third Output</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericArray</span><span class="p">(</span><span class="n">AmplitudeMatrix</span><span class="p">.</span><span class="n">numDimensions</span><span class="p">,</span><span class="w"> </span><span class="n">AmplitudeMatrix</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">,</span><span class="w"> </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">CustomGPUObject</span><span class="w"> </span><span class="nf">SignalMatrix</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span><span class="w"> </span><span class="n">SignalMatrix</span><span class="p">.</span><span class="n">copyFromHostToDevice</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Calling the Function </span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="mi">32</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridConfiguration</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">InputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">InputImage</span><span class="p">.</span><span class="n">inputDimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">PerPixel</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration</span><span class="p">,</span>
+<span class="w">                </span><span class="n">blockConfiguration</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">InputImage</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">BottomLeftCoordinate</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">TopRightCoordinate</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">SensorArrayOrigin</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">SensorArrayDirection</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">outputPointer_class</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">NumSensors</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">SoundSpeed</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">EmitterLocation</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">SamplingFrequency</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">InputImage</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">RecordingTime</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">AmplitudeMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">);</span>
+
+
+<span class="w">    </span><span class="c1">// Prepping for function call</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">grid_square_root_ceil</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">sqrt</span><span class="p">(</span><span class="n">SignalMatrix</span><span class="p">.</span><span class="n">numElements</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">test00</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">sqrt</span><span class="p">(</span><span class="n">TransmissionSignal</span><span class="p">.</span><span class="n">numElements</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">block_square_root_ceil</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pow</span><span class="p">((((</span><span class="kt">int</span><span class="p">)</span><span class="n">log2</span><span class="p">(</span><span class="n">test00</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">blockConfiguration_convolution</span><span class="p">(</span><span class="n">block_square_root_ceil</span><span class="p">,</span><span class="w"> </span><span class="n">block_square_root_ceil</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dim3</span><span class="w"> </span><span class="nf">gridConfiguration_convolution</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">grid_square_root_ceil</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">grid_square_root_ceil</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Function Call</span>
+<span class="w">    </span><span class="n">columnwiseConvolution</span><span class="o">&lt;&lt;&lt;</span><span class="n">gridConfiguration_convolution</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">blockConfiguration_convolution</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">TransmissionSignal</span><span class="p">.</span><span class="n">numElements</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="o">&gt;&gt;&gt;</span>\
+<span class="w">                            </span><span class="p">(</span><span class="n">AmplitudeMatrix</span><span class="p">.</span><span class="n">d_inputDimensions</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">AmplitudeMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">SignalMatrix</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">TransmissionSignal</span><span class="p">.</span><span class="n">numElements</span><span class="p">,</span>
+<span class="w">                            </span><span class="n">TransmissionSignal</span><span class="p">.</span><span class="n">d_inputPointer_real</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Copying the data from Device to Host</span>
+<span class="w">    </span><span class="n">outputPointer_class</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+<span class="w">    </span><span class="n">AmplitudeMatrix</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+<span class="w">    </span><span class="n">SignalMatrix</span><span class="p">.</span><span class="n">copyFromDeviceToHost</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Device Shut down</span>
+<span class="w">    </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cudaDeviceSynchronize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cudaDeviceReset</span><span class="p">();</span>
+<span class="w">    </span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -467,11 +904,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="../Miscellaneous.html"
+       href="CI_BasicHighFrequencyImaging.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Miscellaneous</p>
+        <p class="prev-next-title">Basic High-Frequency Computational Imaging</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -481,6 +918,22 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab">Matlab</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda">CUDA</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
