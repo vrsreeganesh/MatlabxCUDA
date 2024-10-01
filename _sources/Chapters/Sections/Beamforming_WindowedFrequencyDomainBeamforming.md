@@ -249,3 +249,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     cudaDeviceReset();
 }
 ```
+
+## References
+- “Window Function.” Wikipedia: The Free Encyclopedia, Wikimedia Foundation, 26 Sept. 2024, [Link](en.wikipedia.org/wiki/Window_function). Accessed 26 Sept. 2024.
+- Smith, Julius O. “Dolph-Chebyshev Window.” Spectral Audio Signal Processing, DSPRelated.com, [Link](www.dsprelated.com/freebooks/sasp/Dolph_Chebyshev_Window.html). Accessed 26 Sept. 2024.
