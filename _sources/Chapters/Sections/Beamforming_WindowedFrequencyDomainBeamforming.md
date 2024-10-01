@@ -1,4 +1,6 @@
-# Frequency Domain Beamforming with Sensor-Weighing
+# Narrowband Beamformer with Sensor-Weighing
+
+
 
 Traditional beamforming (ie, rectangular windowing) brings along with it significant disadvantages. The first-order, second-order and third-order sidelobes are respectively only 13.5, 18 and 21 dB below the peak level of the main lobe. Strong signals will be detected through the sidelobes of adjacent beams as well as, correctly, in the main lobe of the beam at the bearing of the signal. The resultant bearing ambiguity and additional, false, signals complicate all further
 processes [1].
