@@ -1,4 +1,6 @@
-# Frequency Domain Beamforming with Sensor-Weighing
+# Narrowband Beamformer with Sensor-Weighing
+
+
 
 Traditional beamforming (ie, rectangular windowing) brings along with it significant disadvantages. The first-order, second-order and third-order sidelobes are respectively only 13.5, 18 and 21 dB below the peak level of the main lobe. Strong signals will be detected through the sidelobes of adjacent beams as well as, correctly, in the main lobe of the beam at the bearing of the signal. The resultant bearing ambiguity and additional, false, signals complicate all further
 processes [1].
@@ -249,3 +251,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     cudaDeviceReset();
 }
 ```
+
+## References
+- “Window Function.” Wikipedia: The Free Encyclopedia, Wikimedia Foundation, 26 Sept. 2024, [Link](en.wikipedia.org/wiki/Window_function). Accessed 26 Sept. 2024.
+- Smith, Julius O. “Dolph-Chebyshev Window.” Spectral Audio Signal Processing, DSPRelated.com, [Link](www.dsprelated.com/freebooks/sasp/Dolph_Chebyshev_Window.html). Accessed 26 Sept. 2024.
