@@ -52,24 +52,29 @@ where,
 <div style="margin-top: 8mm;"></div>
 
 Now, we need to construct a steering vector, 
+
 $$
 d(\omega, \theta) = [1, e^{j\omega \tau_2 |theta}, e^{j\omega \tau_3 |theta} ... , e^{j\omega \tau_M |theta}]
 $$
 
 To obtain the element output, we multiply this matrix with the signal function, which results in the signal being delayed by the specificed delay. 
+
 $$
 \mathbf{Y}(\omega, \theta) = d(\omega, \theta) S[\omega]
 $$
 
 The output signal is thus given by
+
 $$
 Z(\omega, \theta) = \sum_{i = 1}^M F_{i}^*(\omega) Y_i (\omega, \theta) = F^H(\omega) Y(\omega, \theta)
 $$
+
 where 
 - $F^H$: the matrix containing the complex weights. 
 
 
 The complex radiation field produced by a linear array of $N$ passive receivers is given by
+
 $$
 Z(\omega, \theta) =  \frac{1}{M} \sum_{m = 1}^{M} s(\omega) e^{- j (m-1) \frac{\omega d}{c} (cos(\theta) - cos(\psi))}
 $$

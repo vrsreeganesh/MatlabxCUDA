@@ -482,26 +482,30 @@ where,</p>
 <li><p><span class="math notranslate nohighlight">\(F_s\)</span>: The sampling frequency of the elements.</p></li>
 </ul>
 <div style="margin-top: 8mm;"></div>
-<p>Now, we need to construct a steering vector,
-$<span class="math notranslate nohighlight">\(
+<p>Now, we need to construct a steering vector,</p>
+<div class="math notranslate nohighlight">
+\[
 d(\omega, \theta) = [1, e^{j\omega \tau_2 |theta}, e^{j\omega \tau_3 |theta} ... , e^{j\omega \tau_M |theta}]
-\)</span>$</p>
-<p>To obtain the element output, we multiply this matrix with the signal function, which results in the signal being delayed by the specificed delay.
-$<span class="math notranslate nohighlight">\(
+\]</div>
+<p>To obtain the element output, we multiply this matrix with the signal function, which results in the signal being delayed by the specificed delay.</p>
+<div class="math notranslate nohighlight">
+\[
 \mathbf{Y}(\omega, \theta) = d(\omega, \theta) S[\omega]
-\)</span>$</p>
-<p>The output signal is thus given by
-$<span class="math notranslate nohighlight">\(
+\]</div>
+<p>The output signal is thus given by</p>
+<div class="math notranslate nohighlight">
+\[
 Z(\omega, \theta) = \sum_{i = 1}^M F_{i}^*(\omega) Y_i (\omega, \theta) = F^H(\omega) Y(\omega, \theta)
-\)</span>$
-where</p>
+\]</div>
+<p>where</p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(F^H\)</span>: the matrix containing the complex weights.</p></li>
 </ul>
-<p>The complex radiation field produced by a linear array of <span class="math notranslate nohighlight">\(N\)</span> passive receivers is given by
-$<span class="math notranslate nohighlight">\(
+<p>The complex radiation field produced by a linear array of <span class="math notranslate nohighlight">\(N\)</span> passive receivers is given by</p>
+<div class="math notranslate nohighlight">
+\[
 Z(\omega, \theta) =  \frac{1}{M} \sum_{m = 1}^{M} s(\omega) e^{- j (m-1) \frac{\omega d}{c} (cos(\theta) - cos(\psi))}
-\)</span>$</p>
+\]</div>
 <section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">#</a></h2>
 <ul class="simple">
