@@ -40,5 +40,9 @@ chapters:
   - file: Chapters/Sections/Beamforming_FrequencyDomainBeamforming
   - file: Chapters/Sections/Beamforming_WindowedFrequencyDomainBeamforming
 - file: Chapters/ComputationalImaging
+  sections:
+  - file: Chapters/Sections/CI_SignalSimulationFromImage.md
+  - file: Chapters/Sections/CI_BasicHighFrequencyImaging.md
 - file: Chapters/Miscellaneous
 - file: Chapters/Contribution.md
+- file: Chapters/Acknowledgements.md
