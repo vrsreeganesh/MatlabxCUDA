@@ -11,6 +11,19 @@ The aim, therefore, should be to produce the narrowest possible main lobe consis
 
 ## Matlab Code
 
+We start off by defining the parameters of our uniform linear-array
+
+```Matlab
+% sensor array parameters
+angle = 60; 
+signal_frequency = 2000;
+Fs = 12800; 
+Ts = 1/Fs;
+sound_speed = 1500;
+num_sensors = 64;
+```
+
+
 ```matlab
 %{
 =================================================================================
