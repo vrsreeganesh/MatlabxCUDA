@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>CUDA Memory Model &#8212; A Functional Introduction to MATLAB x CUDA</title>
+    <title>Acknowledgements &#8212; A Functional Introduction to MATLAB x CUDA</title>
   
   
   
@@ -57,11 +57,10 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/CUDAMemoryModel';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'Chapters/Acknowledgements';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Basic Mex Examples" href="BasicMexExamples.html" />
-    <link rel="prev" title="The Skeletal Structure" href="SkeletalMex.html" />
+    <link rel="prev" title="Wanna Contribute?" href="Contribution.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -183,7 +182,7 @@
 <li class="toctree-l1"><a class="reference internal" href="AboutMatlab.html">About MATLAB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AboutCuda.html">About CUDA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SkeletalMex.html">The Skeletal Structure</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">CUDA Memory Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CUDAMemoryModel.html">CUDA Memory Model</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="BasicMexExamples.html">Basic Mex Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="Sections/HelloWorld.html">Hello World</a></li>
 
@@ -229,7 +228,7 @@
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="Miscellaneous.html">Miscellaneous</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribution.html">Wanna Contribute?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -301,7 +300,7 @@
       
       
       
-      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/CUDAMemoryModel.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/vrsreeganesh/MatlabxCUDA/issues/new?title=Issue%20on%20page%20%2FChapters/Acknowledgements.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -331,7 +330,7 @@
       
       
       
-      <li><a href="../_sources/Chapters/CUDAMemoryModel.md" target="_blank"
+      <li><a href="../_sources/Chapters/Acknowledgements.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -402,9 +401,7 @@ document.write(`
   </button>
 `);
 </script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="fa-solid fa-list"></span>
-</button>
+
 </div></div>
       
     </div>
@@ -415,23 +412,11 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>CUDA Memory Model</h1>
+    <h1>Acknowledgements</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
             
-            <div>
-                <h2> Contents </h2>
-            </div>
-            <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-memory">Global Memory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#local-memory">Local Memory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory">Shared Memory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#registers">Registers</a></li>
-</ul>
-            </nav>
         </div>
     </div>
 </div>
@@ -441,34 +426,11 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="cuda-memory-model">
-<h1>CUDA Memory Model<a class="headerlink" href="#cuda-memory-model" title="Link to this heading">#</a></h1>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>NVIDIA GPUs incorporate a variety of memory types. They differ in their size, latency, throughput, permissions and other characteristics. Having an understanding of the different kinds of memories allows us to use them  accordingly such that code-performance is maximised. The memories introduced and discussed in this chapter are by no means, exhaustive. But it does contain the set of memories that a beginner/intermediate must learn to use in order to write effective (and efficient) CUDA code. Readers are highly encouraged to refer to the official <a class="reference internal" href="#%5BURL%5D(https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html)"><span class="xref myst">CUDA Programming Guide</span></a> for a deeper learning and understanding of NVIDIA-GPU memories.</p>
-</section>
-<section id="global-memory">
-<h2>Global Memory<a class="headerlink" href="#global-memory" title="Link to this heading">#</a></h2>
-<p>Global Memory is a type of memory in NVIDIA-GPUs that, as the name suggests, can be accessed by all the threads in the grid. It is usually the largest, with the modern day Global Memories being GBs in size. They are also the slowest. However, we usually send the data that we want to process using kernels to the Global Memory first owing to its size. Due to the presence of our data in the global memory and its high-latency characteristic, reducing the amount of access to the global memory is a rule of thumb that’s highly recommended. More on this later.</p>
-<!-- The basic protocol when writing CUDA code is to send the data that you want to process to the global memory first and then have the threads fetch it according to the sections they're responsible for, produce the results and write it somewhere in the global memory. The following section presents how to transfer data between host and device global-memory.  -->
-</section>
-<section id="local-memory">
-<h2>Local Memory<a class="headerlink" href="#local-memory" title="Link to this heading">#</a></h2>
-<p><a class="reference external" href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#local-memory">Local Memory</a> is another on-device memory that is available on NVIDIA-GPUs. The memory allows for both read and write processes from device-side. Despite the name, Local Memory is at a close proximity to the Global Memory. Thus, it too has the high-latency issues. The, ``Local’’, part of the name stems from its privilege. The data stored in this memory can only be accessed by the threads to which it belongs to.</p>
-<p>Local Memory is used to store data that cannot be stored in Registers. The kind of data that is usually stored in Local Memory are statically allocated arrays, spilled registers and other elements of the thread’s call stack.</p>
-<p>Unlike Global Memory, there is no need for explicit declaration and initialization for using Local Memory. This takes place automatically. This is important because in time-sensitive contexts, it is important to not use data-structures that warrants it storage in Local Memory as fetching or writing to it will incur the same time-delay as that of using Global Memory. This understanding of when and what variables will be stored in Local Memory will help you design optimal kernels.</p>
-</section>
-<section id="shared-memory">
-<h2>Shared Memory<a class="headerlink" href="#shared-memory" title="Link to this heading">#</a></h2>
-<p><a class="reference external" href="https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory">Shared Memory</a> is another kind of memory that is available on most NVIDIA-GPUs. Unlike Local Memory and Global memory which reside on-device and far from the SMs, shared memory reside on-chip. Due to the physical proximity in addition to the high-bandwidth channels, the latency for read-and-writes are extremely low and magnitudes lower than that of Global and Local Memory. It is designed to support efficient, high-bandwidth sharing of data among threads in a block.</p>
-<p>Regarding access, the contents of the shared memory are available to all threads within a block. This means that data-structures allocated to shared memory is available to all threads within a block. And each block gets their copy of the structure that was assigned to shared memory. For example, if one were to allocate a double array of length 32, all the blocks will have their own copy of this array. This kind of read-and-write access allows the threads within a block to collaborate to carry out different tasks.</p>
-<p>Shared Memory can be assigned in two different ways: statically and dynamically. Static allocation allows for higher-dimensional arrays. However, dynamic allocation only allows for linearized arrays. To use the linear array to represent higher-dimensional arrays, we’ll need to produce work arounds.</p>
-</section>
-<section id="registers">
-<h2>Registers<a class="headerlink" href="#registers" title="Link to this heading">#</a></h2>
-<p>Registers are another kind of memory that is available on most NVIDIA-GPUs. Like Shared Memory, this is on-chip. However, registers are a lot closer to the ALU than Shared Memory and connected to it through high-bandwidth connections. This high-speed connection combined with close proximity allows read-and-write operations to have extremely low-latencies.</p>
-<p>Regarding privilege, the contents of a thread’s registers are exclusively only for that register. Even threads within the same block do not have access to other thread’s registers, except for some advanced conditions known as warp-shuffles. Primarily, registers are used by kernel functions to hold frequently accessed variables that private to each thread. In addition, data that is fetched from other memories are stored here in order to perform operations on it.</p>
-</section>
+  <section class="tex2jax_ignore mathjax_ignore" id="acknowledgements">
+<h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading">#</a></h1>
+<ul class="simple">
+<li><p>Beyonce?</p></li>
+</ul>
 </section>
 
     <script type="text/x-thebe-config">
@@ -502,22 +464,13 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="SkeletalMex.html"
+       href="Contribution.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">The Skeletal Structure</p>
+        <p class="prev-next-title">Wanna Contribute?</p>
       </div>
-    </a>
-    <a class="right-next"
-       href="BasicMexExamples.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Basic Mex Examples</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -525,25 +478,6 @@ document.write(`
             </div>
             
             
-              
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> Contents
-  </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#global-memory">Global Memory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#local-memory">Local Memory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-memory">Shared Memory</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#registers">Registers</a></li>
-</ul>
-  </nav></div>
-
-</div></div>
               
             
           </div>

@@ -229,6 +229,7 @@
 </details></li>
 <li class="toctree-l1"><a class="reference internal" href="../Miscellaneous.html">Miscellaneous</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Contribution.html">Wanna Contribute?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Acknowledgements.html">Acknowledgements</a></li>
 </ul>
 
     </div>
@@ -445,6 +446,26 @@ processes [1].</p>
 <p>The aim, therefore, should be to produce the narrowest possible main lobe consistent with some reasonable level of sidelobes. One such method is <a class="reference external" href="https://en.wikipedia.org/wiki/Window_function">chebyshev window</a>. Here, we multiply the amplitude of each element’s output with shading coefficients obtained from the chebwin function in matlab.</p>
 <section id="matlab-code">
 <h2>Matlab Code<a class="headerlink" href="#matlab-code" title="Link to this heading">#</a></h2>
+<p>We start off by defining the parameters of our uniform linear-array</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="c">% sensor array parameters</span>
+<span class="nb">angle</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">60</span><span class="p">;</span><span class="w"> </span>
+<span class="n">signal_frequency</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2000</span><span class="p">;</span>
+<span class="n">Fs</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">12800</span><span class="p">;</span><span class="w"> </span>
+<span class="n">Ts</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="o">/</span><span class="n">Fs</span><span class="p">;</span>
+<span class="n">sound_speed</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1500</span><span class="p">;</span>
+<span class="n">num_sensors</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">64</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Next, we define some dependent parameters that will be used to simulate the signals that arrive at the sensors in the sensor-array</p>
+<div class="highlight-Matlab notranslate"><div class="highlight"><pre><span></span><span class="n">SNR</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="n">N</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">256</span><span class="p">;</span>
+<span class="n">t</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">Ts</span><span class="p">;</span>
+<span class="n">lambda</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">sound_speed</span><span class="o">/</span><span class="n">signal_frequency</span><span class="p">;</span>
+<span class="n">x</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">lambda</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span>
+<span class="n">d</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">x</span><span class="o">*</span><span class="nb">cosd</span><span class="p">(</span><span class="nb">angle</span><span class="p">)</span><span class="o">/</span><span class="n">sound_speed</span><span class="p">;</span>
+<span class="n">signalMatrix</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">num_sensors</span><span class="p">);</span>
+</pre></div>
+</div>
 <div class="highlight-matlab notranslate"><div class="highlight"><pre><span></span><span class="cm">%{</span>
 <span class="cm">=================================================================================</span>
 <span class="cm">Aim: Implementing directional frequency-domain beamforming</span>
