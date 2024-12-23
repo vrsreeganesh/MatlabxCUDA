@@ -241,6 +241,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 ## Miscellaneous
-make sure that the data is cleaned-up through free() and cudaFree(). 
+Once the processing is done, make sure to clean up the initialized variables through free() and cudaFree(). 
 
 
