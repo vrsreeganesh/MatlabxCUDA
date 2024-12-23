@@ -3,6 +3,13 @@
 ## What is MATLAB?
 MATLAB, short for **Mat**rix **Lab**oratory, is a high-performance programming language developed by MathWorks. It is specifically designed for technical computing and excels in tasks involving matrix manipulations, thanks to its optimization for matrix operations. Beyond the language, MATLAB offers a  suite of tools that cater to numerous industries, from autonomous vehicles to biotechnology. This blend of simple yet powerful language and an extensive toolset has solidified Mathworks, and their product, MATLAB, as a key player in the industry.
 
+
+### Installation
+The exercises in this book primarily involves building MATLAB-CUDA stages. If not already installed, download and install from the following links
+
+- Download and Install: [https://www.mathworks.com/help/install/ug/install-products-with-internet-connection.html](https://www.mathworks.com/help/install/ug/install-products-with-internet-connection.html)
+- Matlab for Students: [https://www.mathworks.com/products/matlab/student.html](https://www.mathworks.com/products/matlab/student.html)
+
 ## Parallel Computing Toolbox
 The Parallel Computing Toolbox, introduced by MathWorks in 2004, significantly enhances MATLAB's capability to perform high-performance computations by enabling parallel processing. This toolbox allows users to use multi-core processors, GPUs and clusters through MATLAB to speed up their computations. This distribution of tasks can dramatically reduce execution times for large-scale problems that exhibit data and task parallelism, making it a staple for tackling computationally intensive tasks in a fraction of the time it would take using serial computing methods. 
 
@@ -11,6 +18,10 @@ The Parallel Computing Toolbox offers a variety of functionalities that cater to
 With respect to our context, we're mainly concerned with the support provided through the Parallel Computing Toolbox for integrating MATLAB with CUDA. They offer high-level functions that simplify the interaction with CUDA enabled GPUs. Key classes like, 'gpuArray', allow users to have tensor operations be performed on the GPU. This allows the user to take use of the capabilities of GPU with negligible amounts of modifying their existing pipeline. 
 
 The toolbox also includes advanced support for users who need to write custom CUDA kernels. With functions such as, 'parallel.gpu.CUDAKernel', users can compile and execute their own CUDA code directly within MATLAB. This allows for the integration of highly optimized and tailored CUDA kernels to the computational pipeline. In conclusion, by providing tools and functions, MATLAB's Parallel Processing Toolbox significantly enables the programmer to perform high-performance computing with minimal learning curve and effort, which makes it an indispensable resource for researchers and engineers working on cutting-edge research. 
+
+### Installation
+The parallel computing toolbox can be installed from within Matlab from the toolbox window. Else, download directly from the website, given by the following link
+- Link: [https://www.mathworks.com/products/parallel-computing.html](https://www.mathworks.com/products/parallel-computing.html)
 
 ## MexCUDA framework
 MEXCUDA is a powerful feature in MATLAB that allows users to write CUDA code within MEX files, enabling the integration of GPU-accelerated computations directly into MATLAB. This feature takes advantage of the parallel processing power of NVIDIA GPUs, making it possible to execute highly optimized CUDA kernels for computationally intensive tasks. By using MEXCUDA, developers can take advantage of the vast performance improvements offered by GPUs, particularly for applications that require substantial numerical computations, such as simulations, image processing, and deep learning.

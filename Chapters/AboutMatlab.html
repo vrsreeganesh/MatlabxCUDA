@@ -423,8 +423,14 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-matlab">What is MATLAB?</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallel-computing-toolbox">Parallel Computing Toolbox</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-matlab">What is MATLAB?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallel-computing-toolbox">Parallel Computing Toolbox</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Installation</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-framework">MexCUDA framework</a></li>
 </ul>
             </nav>
@@ -442,6 +448,14 @@ document.write(`
 <section id="what-is-matlab">
 <h2>What is MATLAB?<a class="headerlink" href="#what-is-matlab" title="Link to this heading">#</a></h2>
 <p>MATLAB, short for <strong>Mat</strong>rix <strong>Lab</strong>oratory, is a high-performance programming language developed by MathWorks. It is specifically designed for technical computing and excels in tasks involving matrix manipulations, thanks to its optimization for matrix operations. Beyond the language, MATLAB offers a  suite of tools that cater to numerous industries, from autonomous vehicles to biotechnology. This blend of simple yet powerful language and an extensive toolset has solidified Mathworks, and their product, MATLAB, as a key player in the industry.</p>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h3>
+<p>The exercises in this book primarily involves building MATLAB-CUDA stages. If not already installed, download and install from the following links</p>
+<ul class="simple">
+<li><p>Download and Install: <a class="reference external" href="https://www.mathworks.com/help/install/ug/install-products-with-internet-connection.html">https://www.mathworks.com/help/install/ug/install-products-with-internet-connection.html</a></p></li>
+<li><p>Matlab for Students: <a class="reference external" href="https://www.mathworks.com/products/matlab/student.html">https://www.mathworks.com/products/matlab/student.html</a></p></li>
+</ul>
+</section>
 </section>
 <section id="parallel-computing-toolbox">
 <h2>Parallel Computing Toolbox<a class="headerlink" href="#parallel-computing-toolbox" title="Link to this heading">#</a></h2>
@@ -449,6 +463,13 @@ document.write(`
 <p>The Parallel Computing Toolbox offers a variety of functionalities that cater to different levels of parallelism, from local parallelism on a single machine to distributed computing across multiple nodes in a cluster. It supports parallel for-loops (parfor), batch processing and parallel execution of MATLAB functions. Additionally, the toolbox provides GPU acceleration for operations that can benefit from the massively parallel architecture of modern-day GPUs.</p>
 <p>With respect to our context, we’re mainly concerned with the support provided through the Parallel Computing Toolbox for integrating MATLAB with CUDA. They offer high-level functions that simplify the interaction with CUDA enabled GPUs. Key classes like, ‘gpuArray’, allow users to have tensor operations be performed on the GPU. This allows the user to take use of the capabilities of GPU with negligible amounts of modifying their existing pipeline.</p>
 <p>The toolbox also includes advanced support for users who need to write custom CUDA kernels. With functions such as, ‘parallel.gpu.CUDAKernel’, users can compile and execute their own CUDA code directly within MATLAB. This allows for the integration of highly optimized and tailored CUDA kernels to the computational pipeline. In conclusion, by providing tools and functions, MATLAB’s Parallel Processing Toolbox significantly enables the programmer to perform high-performance computing with minimal learning curve and effort, which makes it an indispensable resource for researchers and engineers working on cutting-edge research.</p>
+<section id="id1">
+<h3>Installation<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p>The parallel computing toolbox can be installed from within Matlab from the toolbox window. Else, download directly from the website, given by the following link</p>
+<ul class="simple">
+<li><p>Link: <a class="reference external" href="https://www.mathworks.com/products/parallel-computing.html">https://www.mathworks.com/products/parallel-computing.html</a></p></li>
+</ul>
+</section>
 </section>
 <section id="mexcuda-framework">
 <h2>MexCUDA framework<a class="headerlink" href="#mexcuda-framework" title="Link to this heading">#</a></h2>
@@ -521,8 +542,14 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-matlab">What is MATLAB?</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallel-computing-toolbox">Parallel Computing Toolbox</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-matlab">What is MATLAB?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parallel-computing-toolbox">Parallel Computing Toolbox</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Installation</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mexcuda-framework">MexCUDA framework</a></li>
 </ul>
   </nav></div>
