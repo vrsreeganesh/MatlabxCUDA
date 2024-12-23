@@ -4,7 +4,7 @@
 MATLAB, short for **Mat**rix **Lab**oratory, is a high-performance programming language developed by MathWorks. It is specifically designed for technical computing and excels in tasks involving matrix manipulations, thanks to its optimization for matrix operations. Beyond the language, MATLAB offers a  suite of tools that cater to numerous industries, from autonomous vehicles to biotechnology. This blend of simple yet powerful language and an extensive toolset has solidified Mathworks, and their product, MATLAB, as a key player in the industry.
 
 
-### Installation
+#### Installation
 The exercises in this book primarily involves building MATLAB-CUDA stages. If not already installed, download and install from the following links
 
 - Download and Install: [https://www.mathworks.com/help/install/ug/install-products-with-internet-connection.html](https://www.mathworks.com/help/install/ug/install-products-with-internet-connection.html)
@@ -19,7 +19,7 @@ With respect to our context, we're mainly concerned with the support provided th
 
 The toolbox also includes advanced support for users who need to write custom CUDA kernels. With functions such as, 'parallel.gpu.CUDAKernel', users can compile and execute their own CUDA code directly within MATLAB. This allows for the integration of highly optimized and tailored CUDA kernels to the computational pipeline. In conclusion, by providing tools and functions, MATLAB's Parallel Processing Toolbox significantly enables the programmer to perform high-performance computing with minimal learning curve and effort, which makes it an indispensable resource for researchers and engineers working on cutting-edge research. 
 
-### Installation
+#### Installation
 The parallel computing toolbox can be installed from within Matlab from the toolbox window. Else, download directly from the website, given by the following link
 - Link: [https://www.mathworks.com/products/parallel-computing.html](https://www.mathworks.com/products/parallel-computing.html)
 
