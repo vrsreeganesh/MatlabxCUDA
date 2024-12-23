@@ -1,7 +1,10 @@
-
 # Calculating Row Mean
-A very simple example. This mex-function takes in a 2D matrix and returns the average of each row. 
-Note that the data is stored in C as a row-major. This means that two successive elements in the same column are separated by the number of columns. 
+
+## Overview
+Here, we visit a simple example of calculating the row-mean of an input matrix. The mex-function takes in a 2D matrix and returns the average of each row. 
+
+<!-- A very simple example. This mex-function takes in a 2D matrix and returns the average of each row. 
+Note that the data is stored in C as a row-major. This means that two successive elements in the same column are separated by the number of columns.  -->
 
 ## C Code
 

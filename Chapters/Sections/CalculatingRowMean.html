@@ -422,6 +422,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-code">C Code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
 </ul>
@@ -437,8 +438,12 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="calculating-row-mean">
 <h1>Calculating Row Mean<a class="headerlink" href="#calculating-row-mean" title="Link to this heading">#</a></h1>
-<p>A very simple example. This mex-function takes in a 2D matrix and returns the average of each row.
-Note that the data is stored in C as a row-major. This means that two successive elements in the same column are separated by the number of columns.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>Here, we visit a simple example of calculating the row-mean of an input matrix. The mex-function takes in a 2D matrix and returns the average of each row.</p>
+<!-- A very simple example. This mex-function takes in a 2D matrix and returns the average of each row. 
+Note that the data is stored in C as a row-major. This means that two successive elements in the same column are separated by the number of columns.  -->
+</section>
 <section id="c-code">
 <h2>C Code<a class="headerlink" href="#c-code" title="Link to this heading">#</a></h2>
 <div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
@@ -590,6 +595,7 @@ Note that the data is stored in C as a row-major. This means that two successive
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-code">C Code</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#matlab-code">MATLAB Code</a></li>
 </ul>
