@@ -443,14 +443,27 @@ document.write(`
 <p>Here, we visit a simple example of calculating the row-mean of an input matrix. The mex-function takes in a 2D matrix and returns the average of each row.</p>
 <!-- A very simple example. This mex-function takes in a 2D matrix and returns the average of each row. 
 Note that the data is stored in C as a row-major. This means that two successive elements in the same column are separated by the number of columns.  -->
+<!-- =============================== -->
+<!-- =============================== -->
+<!-- =============================== -->
+<!-- =============================== -->
+<!-- =============================== -->
 </section>
 <section id="c-code">
 <h2>C Code<a class="headerlink" href="#c-code" title="Link to this heading">#</a></h2>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
-<span class="cm">=================================================================================</span>
+<p>In the following script, we start off by including the header-file and define the gateway function.</p>
+<p>In the gateway function, we start by checking the arguments. We first check the number of inputs passed from the Matlab script. This is followed by the number of outputs expected by the Matlab script. Once the tests have been passed, we assign a pointer to hold the address of the input, we obtained using the function, <em>mxGetPr()</em>. We then calculate the number of rows and columns.</p>
+<p>Once the inputs have been maintained, we allocate space for the output using <a class="reference external" href="https://www.mathworks.com/help/matlab/apiref/mxcreatenumericmatrix.html"><em>mxCreateNumericMatrix()</em></a>. The arguments to the function are</p>
+<ul class="simple">
+<li><p>number of rows</p></li>
+<li><p>number of columns</p></li>
+<li><p>data-type of matrix to be created</p></li>
+<li><p>real or imaginary</p></li>
+</ul>
+<p>The function creates a matrix described by the arguments and returns a pointer. We’ve allocated the contents of the pointer to <em>plhs[0]</em>, which contains the first output. The pointer to this is then stored into the variable, <em>outputpointer</em>.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cm">/* =======================</span>
 <span class="cm">Aim: Calculating row-means</span>
-<span class="cm">=================================================================================</span>
-<span class="cm">*/</span><span class="w"> </span>
+<span class="cm">======================= */</span><span class="w"> </span>
 
 <span class="c1">// headers</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mex.h&quot;</span>
@@ -479,7 +492,10 @@ Note that the data is stored in C as a row-major. This means that two successive
 <span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">ncols</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">mxGetN</span><span class="p">(</span><span class="n">prhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
 
 <span class="w">    </span><span class="c1">// setting up output</span>
-<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericMatrix</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span><span class="n">mxREAL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mxCreateNumericMatrix</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="n">mxDOUBLE_CLASS</span><span class="p">,</span><span class="w"> </span>
+<span class="w">                                    </span><span class="n">mxREAL</span><span class="p">);</span>
 <span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">outputpointer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">mxGetPr</span><span class="p">(</span><span class="n">plhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
 
 <span class="w">    </span><span class="c1">// calculating the average value for each row</span>
