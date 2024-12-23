@@ -1,7 +1,7 @@
 # An Introduction to Matlab x CUDA 
-This book is under construction. Please drop by later. (Being a grad-student and writing a book is no joke 💀)
+<!-- This book is under construction. Please drop by later. (Being a grad-student and writing a book is no joke 💀)
 
-![The risk I took was calculated but oh boy, am I bad at math](https://i.kym-cdn.com/entries/icons/original/000/024/785/Screen_Shot_2017-11-30_at_1.12.37_PM.png)
+![The risk I took was calculated but oh boy, am I bad at math](https://i.kym-cdn.com/entries/icons/original/000/024/785/Screen_Shot_2017-11-30_at_1.12.37_PM.png) -->
 
 ## But why write a book? (a monologue)
 Let's be honest, with the coming of the internet, information is in a surplus, rather than in a deficit. Whether it's for the good or bad, let's leave that for middle-schoolers to debate. So a question to ask oneself when writing yet another book is, "Why?". And that is a very fair question to ask if you're a wannabe author. After all, why would anyone write a book when there is an ocean of resources out there in the form of books, YouTube videos and lecture-slides? 
