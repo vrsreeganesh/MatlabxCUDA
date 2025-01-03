@@ -27,13 +27,6 @@ In addition to the physical parameters, we also need to setup the signal paramet
 - *transmission duration*: This is the length of the emitted signal.
 
 
-c = 1500;                                                   % Speed of Sound in Water
-signal_frequency = 100;                                     % Frequency of Transmitted Sine-wave
-recording_time = 2e-1;                                      % Duration of Recording
-sampling_frequency = 16e3;                                  % Sampling Frequency of Hydrophones
-transmissionDuration = 1e-2;                                % Duration of transmission
-
-
 ## Matlab Code
 
 We first start off by compiling the written CUDA code
